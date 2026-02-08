@@ -1,0 +1,420 @@
+<%- include('partials/header', { title: 'Ajouter étudiant' }) %>
+
+<!-- Header avec navigation -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="slide-in-left">
+    <h2 class="h4 mb-0 text-gradient">Nouvel étudiant</h2>
+    <p class="text-muted mb-0">Enregistrer un nouvel élève dans le système</p>
+  </div>
+  <div class="slide-in-right">
+    <a href="/etudiants" class="btn btn-outline-secondary btn-modern hover-lift">
+      <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+    </a>
+  </div>
+</div>
+
+<% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+  <div class="alert alert-danger"><%= errorMessage %></div>
+<% } %>
+
+<!-- Formulaire principal - OUVERTURE DU FORM ICI -->
+<form id="form-etudiant" method="post" action="/etudiants/add" data-autosave>
+  <div class="row g-4">
+    <!-- Informations de base -->
+    <div class="col-lg-8">
+      <div class="card card-modern fade-in">
+        <div class="card-header d-flex align-items-center">
+          <i class="fas fa-user-graduate me-3 text-primary"></i>
+          <div>
+            <h5 class="mb-0">Informations de base</h5>
+            <small class="text-muted">Données essentielles de l'étudiant</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            <!-- Matricule -->
+            <div class="col-md-4">
+              <div class="form-floating">
+                <input id="numero_matricule" name="numero_matricule" class="form-control" required placeholder="Ex: 2025-0001" value="<%= typeof formData !== 'undefined' && formData.numero_matricule ? formData.numero_matricule : '' %>">
+                <label for="numero_matricule">Numéro matricule</label>
+              </div>
+              <div class="form-text">
+                <i class="fas fa-info-circle me-1"></i>Identifiant unique de l'étudiant
+                <br>
+                <small class="text-muted">Généré automatiquement au chargement de la page</small>
+              </div>
+            </div>
+
+            <!-- Nom -->
+            <div class="col-md-4">
+              <div class="form-floating">
+                <input id="nom" name="nom" class="form-control" required placeholder="Nom de famille" value="<%= typeof formData !== 'undefined' && formData.nom ? formData.nom : '' %>">
+                <label for="nom">Nom de famille</label>
+              </div>
+            </div>
+
+            <!-- Prénom -->
+            <div class="col-md-4">
+              <div class="form-floating">
+                <input id="prenom" name="prenom" class="form-control" required placeholder="Prénom" value="<%= typeof formData !== 'undefined' && formData.prenom ? formData.prenom : '' %>">
+                <label for="prenom">Prénom</label>
+              </div>
+            </div>
+
+            <!-- Niveau et Classe -->
+            <div class="col-md-6">
+              <div class="form-floating">
+                <select id="niveau" name="niveau" class="form-select" required>
+                  <option value="">Sélectionner un niveau</option>
+                  <option value="Maternelles" <%= typeof formData !== 'undefined' && formData.niveau === 'Maternelles' ? 'selected' : '' %>>Maternelles</option>
+                  <option value="Primaires" <%= typeof formData !== 'undefined' && formData.niveau === 'Primaires' ? 'selected' : '' %>>Primaires</option>
+                  <option value="Premier cycle" <%= typeof formData !== 'undefined' && formData.niveau === 'Premier cycle' ? 'selected' : '' %>>Premier cycle</option>
+                  <option value="Second cycle" <%= typeof formData !== 'undefined' && formData.niveau === 'Second cycle' ? 'selected' : '' %>>Second Cycle</option>
+                </select>
+                <label for="niveau">Niveau scolaire</label>
+              </div>
+            </div>
+  
+            <div class="col-md-6">
+              <div class="form-floating">
+                <select id="classe" name="classe" class="form-select" required>
+                  <option value="">Sélectionner une classe</option>
+                  <option value="PS I" <%= typeof formData !== 'undefined' && formData.classe === 'PS I' ? 'selected' : '' %>>PS I</option>
+                  <option value="PS II" <%= typeof formData !== 'undefined' && formData.classe === 'PS II' ? 'selected' : '' %>>PS II</option>
+                  <option value="MS I" <%= typeof formData !== 'undefined' && formData.classe === 'MS I' ? 'selected' : '' %>>MS I</option>
+                  <option value="MS II" <%= typeof formData !== 'undefined' && formData.classe === 'MS II' ? 'selected' : '' %>>MS II</option>
+                  <option value="GS I" <%= typeof formData !== 'undefined' && formData.classe === 'GS I' ? 'selected' : '' %>>GS I</option>
+                  <option value="GS II" <%= typeof formData !== 'undefined' && formData.classe === 'GS II' ? 'selected' : '' %>>GS II</option>
+                  <option value="12 ème I" <%= typeof formData !== 'undefined' && formData.classe === '12 ème I' ? 'selected' : '' %>>12 ème I</option>
+                  <option value="12 ème II" <%= typeof formData !== 'undefined' && formData.classe === '12 ème II' ? 'selected' : '' %>>12 ème II</option>
+                  <option value="12 ème III" <%= typeof formData !== 'undefined' && formData.classe === '12 ème III' ? 'selected' : '' %>>12 ème III</option>
+                  <option value="12 ème IV" <%= typeof formData !== 'undefined' && formData.classe === '12 ème IV' ? 'selected' : '' %>>12 ème IV</option>
+                  <option value="12 ème V" <%= typeof formData !== 'undefined' && formData.classe === '12 ème V' ? 'selected' : '' %>>12 ème V</option>
+                  <option value="12 ème VI" <%= typeof formData !== 'undefined' && formData.classe === '12 ème VI' ? 'selected' : '' %>>12 ème VI</option>
+                  <option value="11 ème I" <%= typeof formData !== 'undefined' && formData.classe === '11 ème I' ? 'selected' : '' %>>11 ème I</option>
+                  <option value="11 ème II" <%= typeof formData !== 'undefined' && formData.classe === '11 ème II' ? 'selected' : '' %>>11 ème II</option>
+                  <option value="11 ème III" <%= typeof formData !== 'undefined' && formData.classe === '11 ème III' ? 'selected' : '' %>>11 ème III</option>
+                  <option value="11 ème IV" <%= typeof formData !== 'undefined' && formData.classe === '11 ème IV' ? 'selected' : '' %>>11 ème IV</option>
+                  <option value="11 ème V" <%= typeof formData !== 'undefined' && formData.classe === '11 ème V' ? 'selected' : '' %>>11 ème V</option>
+                  <option value="11 ème VI" <%= typeof formData !== 'undefined' && formData.classe === '11 ème VI' ? 'selected' : '' %>>11 ème VI</option>
+                  <option value="10 ème I" <%= typeof formData !== 'undefined' && formData.classe === '10 ème I' ? 'selected' : '' %>>10 ème I</option>
+                  <option value="10 ème II" <%= typeof formData !== 'undefined' && formData.classe === '10 ème II' ? 'selected' : '' %>>10 ème II</option>
+                  <option value="10 ème III" <%= typeof formData !== 'undefined' && formData.classe === '10 ème III' ? 'selected' : '' %>>10 ème III</option>
+                  <option value="10 ème IV" <%= typeof formData !== 'undefined' && formData.classe === '10 ème IV' ? 'selected' : '' %>>10 ème IV</option>
+                  <option value="10 ème V" <%= typeof formData !== 'undefined' && formData.classe === '10 ème V' ? 'selected' : '' %>>10 ème V</option>
+                  <option value="10 ème VI" <%= typeof formData !== 'undefined' && formData.classe === '10 ème VI' ? 'selected' : '' %>>10 ème VI</option>
+                  <option value="9 ème I" <%= typeof formData !== 'undefined' && formData.classe === '9 ème I' ? 'selected' : '' %>>9 ème I</option>
+                  <option value="9 ème II" <%= typeof formData !== 'undefined' && formData.classe === '9 ème II' ? 'selected' : '' %>>9 ème II</option>
+                  <option value="9 ème III" <%= typeof formData !== 'undefined' && formData.classe === '9 ème III' ? 'selected' : '' %>>9 ème III</option>
+                  <option value="9 ème IV" <%= typeof formData !== 'undefined' && formData.classe === '9 ème IV' ? 'selected' : '' %>>9 ème IV</option>
+                  <option value="9 ème V" <%= typeof formData !== 'undefined' && formData.classe === '9 ème V' ? 'selected' : '' %>>9 ème V</option>
+                  <option value="9 ème VI" <%= typeof formData !== 'undefined' && formData.classe === '9 ème VI' ? 'selected' : '' %>>9 ème VI</option>
+                  <option value="8 ème I" <%= typeof formData !== 'undefined' && formData.classe === '8 ème I' ? 'selected' : '' %>>8 ème I</option>
+                  <option value="8 ème II" <%= typeof formData !== 'undefined' && formData.classe === '8 ème II' ? 'selected' : '' %>>8 ème II</option>
+                  <option value="8 ème III" <%= typeof formData !== 'undefined' && formData.classe === '8 ème III' ? 'selected' : '' %>>8 ème III</option>
+                  <option value="8 ème IV" <%= typeof formData !== 'undefined' && formData.classe === '8 ème IV' ? 'selected' : '' %>>8 ème IV</option>
+                  <option value="8 ème V" <%= typeof formData !== 'undefined' && formData.classe === '8 ème V' ? 'selected' : '' %>>8 ème V</option>
+                  <option value="8 ème VI" <%= typeof formData !== 'undefined' && formData.classe === '8 ème VI' ? 'selected' : '' %>>8 ème VI</option>
+                  <option value="7 ème I" <%= typeof formData !== 'undefined' && formData.classe === '7 ème I' ? 'selected' : '' %>>7 ème I</option>
+                  <option value="7 ème II" <%= typeof formData !== 'undefined' && formData.classe === '7 ème II' ? 'selected' : '' %>>7 ème II</option>
+                  <option value="7 ème III" <%= typeof formData !== 'undefined' && formData.classe === '7 ème III' ? 'selected' : '' %>>7 ème III</option>
+                  <option value="7 ème IV" <%= typeof formData !== 'undefined' && formData.classe === '7 ème IV' ? 'selected' : '' %>>7 ème IV</option>
+                  <option value="7 ème V" <%= typeof formData !== 'undefined' && formData.classe === '7 ème V' ? 'selected' : '' %>>7 ème V</option>
+                  <option value="7 ème VI" <%= typeof formData !== 'undefined' && formData.classe === '7 ème VI' ? 'selected' : '' %>>7 ème VI</option>
+                  <option value="6 ème I" <%= typeof formData !== 'undefined' && formData.classe === '6 ème I' ? 'selected' : '' %>>6 ème I</option>
+                  <option value="6 ème II" <%= typeof formData !== 'undefined' && formData.classe === '6 ème II' ? 'selected' : '' %>>6 ème II</option>
+                  <option value="6 ème III" <%= typeof formData !== 'undefined' && formData.classe === '6 ème III' ? 'selected' : '' %>>6 ème III</option>
+                  <option value="6 ème IV" <%= typeof formData !== 'undefined' && formData.classe === '6 ème IV' ? 'selected' : '' %>>6 ème IV</option>
+                  <option value="6 ème V" <%= typeof formData !== 'undefined' && formData.classe === '6 ème V' ? 'selected' : '' %>>6 ème V</option>
+                  <option value="6 ème VI" <%= typeof formData !== 'undefined' && formData.classe === '6 ème VI' ? 'selected' : '' %>>6 ème VI</option>
+                  <option value="5 ème I" <%= typeof formData !== 'undefined' && formData.classe === '5 ème I' ? 'selected' : '' %>>5 ème I</option>
+                  <option value="5 ème II" <%= typeof formData !== 'undefined' && formData.classe === '5 ème II' ? 'selected' : '' %>>5 ème II</option>
+                  <option value="5 ème III" <%= typeof formData !== 'undefined' && formData.classe === '5 ème III' ? 'selected' : '' %>>5 ème III</option>
+                  <option value="5 ème IV" <%= typeof formData !== 'undefined' && formData.classe === '5 ème IV' ? 'selected' : '' %>>5 ème IV</option>
+                  <option value="5 ème V" <%= typeof formData !== 'undefined' && formData.classe === '5 ème V' ? 'selected' : '' %>>5 ème V</option>
+                  <option value="5 ème VI" <%= typeof formData !== 'undefined' && formData.classe === '5 ème VI' ? 'selected' : '' %>>5 ème VI</option>
+                  <option value="4 ème I" <%= typeof formData !== 'undefined' && formData.classe === '4 ème I' ? 'selected' : '' %>>4 ème I</option>
+                  <option value="4 ème II" <%= typeof formData !== 'undefined' && formData.classe === '4 ème II' ? 'selected' : '' %>>4 ème II</option>
+                  <option value="4 ème III" <%= typeof formData !== 'undefined' && formData.classe === '4 ème III' ? 'selected' : '' %>>4 ème III</option>
+                  <option value="4 ème IV" <%= typeof formData !== 'undefined' && formData.classe === '4 ème IV' ? 'selected' : '' %>>4 ème IV</option>
+                  <option value="4 ème V" <%= typeof formData !== 'undefined' && formData.classe === '4 ème V' ? 'selected' : '' %>>4 ème V</option>
+                  <option value="4 ème VI" <%= typeof formData !== 'undefined' && formData.classe === '4 ème VI' ? 'selected' : '' %>>4 ème VI</option>
+                  <option value="3 ème I" <%= typeof formData !== 'undefined' && formData.classe === '3 ème I' ? 'selected' : '' %>>3 ème I</option>
+                  <option value="3 ème II" <%= typeof formData !== 'undefined' && formData.classe === '3 ème II' ? 'selected' : '' %>>3 ème II</option>
+                  <option value="3 ème III" <%= typeof formData !== 'undefined' && formData.classe === '3 ème III' ? 'selected' : '' %>>3 ème III</option>
+                  <option value="3 ème IV" <%= typeof formData !== 'undefined' && formData.classe === '3 ème IV' ? 'selected' : '' %>>3 ème IV</option>
+                  <option value="3 ème V" <%= typeof formData !== 'undefined' && formData.classe === '3 ème V' ? 'selected' : '' %>>3 ème V</option>
+                  <option value="3 ème VI" <%= typeof formData !== 'undefined' && formData.classe === '3 ème VI' ? 'selected' : '' %>>3 ème VI</option>
+                  <option value="2nde I" <%= typeof formData !== 'undefined' && formData.classe === '2nde I' ? 'selected' : '' %>>2nde I</option>
+                  <option value="2nde II" <%= typeof formData !== 'undefined' && formData.classe === '2nde II' ? 'selected' : '' %>>2nde II</option>
+                  <option value="2nde III" <%= typeof formData !== 'undefined' && formData.classe === '2nde III' ? 'selected' : '' %>>2nde III</option>
+                  <option value="2nde IV" <%= typeof formData !== 'undefined' && formData.classe === '2nde IV' ? 'selected' : '' %>>2nde IV</option>
+                  <option value="2nde V" <%= typeof formData !== 'undefined' && formData.classe === '2nde V' ? 'selected' : '' %>>2nde V</option>
+                  <option value="2nde VI" <%= typeof formData !== 'undefined' && formData.classe === '2nde VI' ? 'selected' : '' %>>2nde VI</option>
+                  <option value="1ère AI" <%= typeof formData !== 'undefined' && formData.classe === '1ère AI' ? 'selected' : '' %>>1ère AI</option>
+                  <option value="1ère AII" <%= typeof formData !== 'undefined' && formData.classe === '1ère AII' ? 'selected' : '' %>>1ère AII</option>
+                  <option value="1ère C" <%= typeof formData !== 'undefined' && formData.classe === '1ère C' ? 'selected' : '' %>>1ère C</option>
+                  <option value="1ère DI" <%= typeof formData !== 'undefined' && formData.classe === '1ère DI' ? 'selected' : '' %>>1ère DI</option>
+                  <option value="1ère DII" <%= typeof formData !== 'undefined' && formData.classe === '1ère DII' ? 'selected' : '' %>>1ère DII</option>
+                  <option value="Terminale AI" <%= typeof formData !== 'undefined' && formData.classe === 'Terminale AI' ? 'selected' : '' %>>Terminale AI</option>
+                  <option value="Terminale AII" <%= typeof formData !== 'undefined' && formData.classe === 'Terminale AII' ? 'selected' : '' %>>Terminale AII</option>
+                  <option value="Terminale C" <%= typeof formData !== 'undefined' && formData.classe === 'Terminale C' ? 'selected' : '' %>>Terminale C</option>
+                  <option value="Terminale DI" <%= typeof formData !== 'undefined' && formData.classe === 'Terminale DI' ? 'selected' : '' %>>Terminale DI</option>
+                  <option value="Terminale DII" <%= typeof formData !== 'undefined' && formData.classe === 'Terminale DII' ? 'selected' : '' %>>Terminale DII</option>
+                </select>
+                <label for="classe">Classe</label>
+              </div>
+            </div>
+
+            <!-- Contact -->
+            <div class="col-md-8">
+              <div class="form-floating">
+                <input id="telephone_parent" name="telephone_parent" type="tel" class="form-control phone-input" required placeholder="Ex: 032 00 000 00" maxlength="15" value="<%= typeof formData !== 'undefined' && formData.telephone_parent ? formData.telephone_parent : '' %>">
+                <label for="telephone_parent">Téléphone du parent</label>
+              </div>
+              <div class="form-text">
+                <i class="fas fa-info-circle me-1"></i>10 chiffres requis (ex: 032 00 000 00). Espaces automatiquement formatés.
+              </div>
+            </div>
+
+            <!-- Vaccination -->
+            <div class="col-md-4 d-flex align-items-center">
+              <div class="form-check form-switch form-check-lg">
+                <input class="form-check-input" type="checkbox" id="est_vaccine" name="est_vaccine" <%= typeof formData !== 'undefined' && formData.est_vaccine === 'on' ? 'checked' : '' %>>
+                <label class="form-check-label" for="est_vaccine">
+                  <i class="fas fa-syringe me-2 text-success"></i>Vacciné
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Informations personnelles -->
+    <div class="col-lg-4">
+      <div class="card card-modern fade-in stagger-1">
+        <div class="card-header d-flex align-items-center">
+          <i class="fas fa-id-card me-3 text-info"></i>
+          <div>
+            <h5 class="mb-0">Informations personnelles</h5>
+            <small class="text-muted">Données complémentaires</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="date_naissance" name="date_naissance" type="date" class="form-control" value="<%= typeof formData !== 'undefined' && formData.date_naissance ? formData.date_naissance : '' %>">
+                <label for="date_naissance">Date de naissance</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="lieu_naissance" name="lieu_naissance" class="form-control" placeholder="Ex: Mahajanga" value="<%= typeof formData !== 'undefined' && formData.lieu_naissance ? formData.lieu_naissance : '' %>">
+                <label for="lieu_naissance">Lieu de naissance</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="nom_pere" name="nom_pere" class="form-control" placeholder="Nom complet du père" value="<%= typeof formData !== 'undefined' && formData.nom_pere ? formData.nom_pere : '' %>">
+                <label for="nom_pere">Nom du père</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="nom_mere" name="nom_mere" class="form-control" placeholder="Nom complet de la mère" value="<%= typeof formData !== 'undefined' && formData.nom_mere ? formData.nom_mere : '' %>">
+                <label for="nom_mere">Nom de la mère</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="acte_numero" name="acte_numero" class="form-control" placeholder="Numéro de l'acte" value="<%= typeof formData !== 'undefined' && formData.acte_numero ? formData.acte_numero : '' %>">
+                <label for="acte_numero">N° acte de naissance</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="acte_date" name="acte_date" type="date" class="form-control" value="<%= typeof formData !== 'undefined' && formData.acte_date ? formData.acte_date : '' %>">
+                <label for="acte_date">Date de l'acte</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+<!-- FERMETURE DU FORM ICI - après les informations personnelles -->
+
+<!-- Actions -->
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card card-modern fade-in stagger-2">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-info btn-modern" onclick="generateMatricule()" id="generateBtn">
+              <i class="fas fa-magic me-2"></i>Générer matricule
+            </button>
+            <button type="button" class="btn btn-outline-success btn-modern" onclick="generateMatricule()" id="regenerateBtn" style="display: none;">
+              <i class="fas fa-sync-alt me-2"></i>Régénérer
+            </button>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="reset" form="form-etudiant" class="btn btn-outline-secondary btn-modern">
+              <i class="fas fa-rotate-left me-2"></i>Réinitialiser
+            </button>
+            <button type="submit" form="form-etudiant" class="btn btn-primary btn-modern">
+              <i class="fas fa-save me-2"></i>Enregistrer l'étudiant
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Génération automatique du matricule
+async function generateMatricule() {
+  const generateBtn = document.getElementById('generateBtn');
+  const regenerateBtn = document.getElementById('regenerateBtn');
+  const input = document.getElementById('numero_matricule');
+
+  // Afficher l'état de chargement
+  const originalText = generateBtn.innerHTML;
+  generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Génération...';
+  generateBtn.disabled = true;
+
+  try {
+    const response = await fetch('/etudiants/api/next-matricule');
+    const data = await response.json();
+
+    if (data.success) {
+      input.value = data.matricule;
+
+      // Ajouter un effet visuel de succès
+      input.style.backgroundColor = '#d4edda';
+      input.style.borderColor = '#28a745';
+
+      // Changer les boutons
+      generateBtn.style.display = 'none';
+      regenerateBtn.style.display = 'inline-block';
+
+      setTimeout(() => {
+        input.style.backgroundColor = '';
+        input.style.borderColor = '';
+      }, 1000);
+    } else {
+      console.error('Erreur génération matricule:', data.message);
+      // Fallback en cas d'erreur
+      const year = new Date().getFullYear();
+      const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+      input.value = `${year}-${random}`;
+
+      // Afficher un message d'erreur
+      input.style.backgroundColor = '#f8d7da';
+      input.style.borderColor = '#dc3545';
+      setTimeout(() => {
+        input.style.backgroundColor = '';
+        input.style.borderColor = '';
+      }, 2000);
+    }
+  } catch (error) {
+    console.error('Erreur:', error);
+    // Fallback en cas d'erreur
+    const year = new Date().getFullYear();
+    const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+    input.value = `${year}-${random}`;
+  } finally {
+    // Restaurer le bouton
+    generateBtn.innerHTML = originalText;
+    generateBtn.disabled = false;
+  }
+}
+
+// Auto-génération du matricule si vide
+document.getElementById('numero_matricule').addEventListener('blur', function() {
+  if (!this.value) {
+    generateMatricule();
+  }
+});
+
+// Génération automatique au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+  generateMatricule();
+  
+  // Initialiser la synchronisation niveau/classe
+  updateClassesOptions();
+  
+  // Écouter les changements de niveau
+  document.getElementById('niveau').addEventListener('change', updateClassesOptions);
+});
+
+// Fonction pour synchroniser les options de classe selon le niveau
+function updateClassesOptions() {
+  const niveauSelect = document.getElementById('niveau');
+  const classeSelect = document.getElementById('classe');
+  const selectedNiveau = niveauSelect.value;
+  const currentClasseValue = classeSelect.value;
+  
+  // Définir les classes par niveau
+  const classesByNiveau = {
+    'Maternelles': ['PS I', 'PS II', 'MS I', 'MS II', 'GS I', 'GS II'],
+    'Primaires': [
+      '12 ème I', '12 ème II', '12 ème III', '12 ème IV', '12 ème V', '12 ème VI',
+      '11 ème I', '11 ème II', '11 ème III', '11 ème IV', '11 ème V', '11 ème VI',
+      '10 ème I', '10 ème II', '10 ème III', '10 ème IV', '10 ème V', '10 ème VI',
+      '9 ème I', '9 ème II', '9 ème III', '9 ème IV', '9 ème V', '9 ème VI',
+      '8 ème I', '8 ème II', '8 ème III', '8 ème IV', '8 ème V', '8 ème VI',
+      '7 ème I', '7 ème II', '7 ème III', '7 ème IV', '7 ème V', '7 ème VI'
+    ],
+    'Premier cycle': [
+      '6 ème I', '6 ème II', '6 ème III', '6 ème IV', '6 ème V', '6 ème VI',
+      '5 ème I', '5 ème II', '5 ème III', '5 ème IV', '5 ème V', '5 ème VI',
+      '4 ème I', '4 ème II', '4 ème III', '4 ème IV', '4 ème V', '4 ème VI',
+      '3 ème I', '3 ème II', '3 ème III', '3 ème IV', '3 ème V', '3 ème VI'
+    ],
+    'Second cycle': [
+      '2nde I', '2nde II', '2nde III', '2nde IV', '2nde V', '2nde VI',
+      '1ère AI', '1ère AII', '1ère C', '1ère DI', '1ère DII',
+      'Terminale AI', 'Terminale AII', 'Terminale C', 'Terminale DI', 'Terminale DII'
+    ]
+  };
+  
+  // Récupérer les classes correspondantes au niveau sélectionné
+  const availableClasses = classesByNiveau[selectedNiveau] || [];
+  
+  // Réinitialiser le select classe
+  classeSelect.innerHTML = '<option value="">Sélectionner une classe</option>';
+  
+  // Ajouter les classes disponibles pour le niveau sélectionné
+  availableClasses.forEach(classe => {
+    const option = document.createElement('option');
+    option.value = classe;
+    option.textContent = classe;
+    
+    // Restaurer la sélection précédente si elle existe dans les nouvelles options
+    if (currentClasseValue === classe) {
+      option.selected = true;
+    }
+    
+    classeSelect.appendChild(option);
+  });
+  
+  // Si aucun niveau n'est sélectionné, désactiver le select classe
+  if (!selectedNiveau) {
+    classeSelect.disabled = true;
+  } else {
+    classeSelect.disabled = false;
+  }
+}
+</script>
+
+<%- include('partials/footer') %>

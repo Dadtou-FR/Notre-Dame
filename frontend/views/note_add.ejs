@@ -1,0 +1,472 @@
+<%- include('partials/header', { title: 'Ajouter des notes' }) %>
+
+<style>
+  .notes-container {
+    background: linear-gradient(135deg, #0830df 0%, #0b0ed1 100%);
+    border-radius: 8px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+  }
+  
+  .form-section-title {
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    margin-top: 25px;
+  }
+  
+  .form-section-title:first-of-type {
+    margin-top: 0;
+  }
+  
+  .matiere-row {
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+  }
+  
+  .matiere-row:hover {
+    background: #e9ecef;
+    transition: background 0.3s;
+  }
+  
+  .note-input {
+    max-width: 100px;
+    text-align: center;
+    font-weight: bold;
+  }
+  
+  .table-notes thead {
+    background-color: #2c3e50;
+    color: white;
+  }
+  
+  .btn-group-custom {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .instructions {
+    background: #e3f2fd;
+    border-left: 4px solid #2196F3;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+  
+  /* Styles pour l'autocomplétion */
+  .autocomplete-container {
+    position: relative;
+    width: 100%;
+  }
+  
+  .autocomplete-input {
+    width: 100%;
+  }
+  
+  .autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .autocomplete-list.active {
+    display: block;
+  }
+  
+  .autocomplete-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+  }
+  
+  .autocomplete-item:hover,
+  .autocomplete-item.highlighted {
+    background-color: #f5f5f5;
+  }
+  
+  .autocomplete-item:last-child {
+    border-bottom: none;
+  }
+  
+  .autocomplete-item-text {
+    display: block;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .autocomplete-item-sub {
+    display: block;
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 4px;
+  }
+  
+  .no-results {
+    padding: 15px;
+    text-align: center;
+    color: #999;
+  }
+</style>
+
+<div class="notes-container">
+  <div class="d-flex justify-content-between align-items-center mb-0">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-edit me-2"></i>Saisie des Notes</h2>
+      <p class="mb-0 mt-2 opacity-75">Entrez les notes trimestrielles de l'élève selon les matières de son niveau</p>
+    </div>
+    <a href="/notes" class="btn btn-light"><i class="fas fa-arrow-left me-1"></i>Retour</a>
+  </div>
+</div>
+
+<form method="post" action="/notes/add-batch" id="notesForm">
+  <!-- Section : Informations principales -->
+  <div class="form-section-title"><i class="fas fa-user-graduate me-2"></i>Informations de l'élève</div>
+  
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <label class="form-label fw-bold">Numéro matricule *</label>
+      <div class="autocomplete-container">
+        <input type="text" name="numero_matricule" id="numero_matricule" class="form-control form-control-lg autocomplete-input" 
+               placeholder="Ex: 2024001" required autocomplete="off">
+        <ul class="autocomplete-list" id="autocomplete-list"></ul>
+      </div>
+      <small class="form-text text-muted">Identifiant unique de l'élève</small>
+    </div>
+    
+    <div class="col-md-4">
+      <label class="form-label fw-bold">Trimestre *</label>
+      <select name="session" class="form-select form-select-lg" required>
+        <option value="">-- Sélectionner --</option>
+        <option value="1er">1er</option>
+        <option value="2ème">2ème</option>
+        <option value="3ème">3ème</option>
+      </select>
+      <small class="form-text text-muted">Période d'évaluation</small>
+    </div>
+    
+    <div class="col-md-4">
+      <label class="form-label fw-bold">Type d'évaluation *</label>
+      <select name="type_evaluation" id="type_evaluation" class="form-select form-select-lg" required>
+        <option value="">-- Sélectionner --</option>
+        <option value="Controle Continu">Controle Continu</option>
+        <option value="Examen">Examen</option>
+      </select>
+      <small class="form-text text-muted">Contrôle ou Examen</small>
+    </div>
+  </div>
+
+  <!-- Section : Tableau des notes -->
+  <div class="form-section-title"><i class="fas fa-table me-2"></i>Tableau des Notes par Matière</div>
+  
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover table-notes mb-0">
+          <thead>
+            <tr>
+              <th style="width: 35%;">Matière</th>
+              <th style="width: 20%;">Note <small>(sur 20)</small></th>
+              <th style="width: 45%;">Commentaire</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="matiere-row">
+              <td><strong>Catéchèse</strong></td>
+              <td>
+                <input type="number" name="notes[Catéchèse][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[Catéchèse][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Ex: Bon progrès">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>Philosophie / Initiation</strong></td>
+              <td>
+                <input type="number" name="notes[Philosophie / Initiation][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[Philosophie / Initiation][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>Malagasy</strong></td>
+              <td>
+                <input type="number" name="notes[Malagasy][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[Malagasy][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>Français</strong></td>
+              <td>
+                <input type="number" name="notes[Français][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[Français][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>Anglais</strong></td>
+              <td>
+                <input type="number" name="notes[Anglais][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[Anglais][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>Espagnol</strong></td>
+              <td>
+                <input type="number" name="notes[Espagnol][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[Espagnol][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>Histoire - Géographie</strong></td>
+              <td>
+                <input type="number" name="notes[Histoire - Géographie][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[Histoire - Géographie][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>Mathématiques</strong></td>
+              <td>
+                <input type="number" name="notes[Mathématiques][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[Mathématiques][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>Physique - Chimie</strong></td>
+              <td>
+                <input type="number" name="notes[Physique - Chimie][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[Physique - Chimie][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>SVT (Sciences de la Vie et de la Terre)</strong></td>
+              <td>
+                <input type="number" name="notes[SVT][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[SVT][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>Informatique</strong></td>
+              <td>
+                <input type="number" name="notes[Informatique][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[Informatique][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+            <tr class="matiere-row">
+              <td><strong>EPS (Éducation Physique et Sportive)</strong></td>
+              <td>
+                <input type="number" name="notes[EPS][note]" class="form-control form-control-sm note-input" 
+                       min="0" max="20" step="0.5" placeholder="0-20">
+              </td>
+              <td>
+                <input type="text" name="notes[EPS][commentaire]" class="form-control form-control-sm" 
+                       placeholder="Optionnel">
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section : Actions -->
+  <div class="btn-group-custom">
+    <button type="submit" class="btn btn-success btn-lg">
+      <i class="fas fa-check me-2"></i>Valider et enregistrer
+    </button>
+    <button type="button" class="btn btn-warning btn-lg ms-2" onclick="clearForm()">
+      <i class="fas fa-eraser me-2"></i>Effacer le formulaire
+    </button>
+    <a href="/notes" class="btn btn-outline-secondary btn-lg">
+      <i class="fas fa-times me-2"></i>Annuler
+    </a>
+  </div>
+</form>
+
+<script>
+function clearForm() {
+  if (confirm('Êtes-vous sûr de vouloir effacer tous les champs ?')) {
+    document.getElementById('notesForm').reset();
+    document.getElementById('autocomplete-list').classList.remove('active');
+  }
+}
+
+// Autocomplétion pour le numéro matricule
+const inputMatricule = document.getElementById('numero_matricule');
+const autocompleteList = document.getElementById('autocomplete-list');
+let currentHighlightedIndex = -1;
+
+inputMatricule.addEventListener('input', async function(e) {
+  const value = e.target.value.trim();
+  
+  if (value.length === 0) {
+    autocompleteList.classList.remove('active');
+    autocompleteList.innerHTML = '';
+    currentHighlightedIndex = -1;
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/notes/search-students?q=${encodeURIComponent(value)}`);
+    const results = await response.json();
+    
+    autocompleteList.innerHTML = '';
+    
+    if (results.length === 0) {
+      autocompleteList.innerHTML = '<li class="no-results">Aucun étudiant trouvé</li>';
+      autocompleteList.classList.add('active');
+      currentHighlightedIndex = -1;
+    } else {
+      results.forEach((etudiant, index) => {
+        const li = document.createElement('li');
+        li.className = 'autocomplete-item';
+        li.innerHTML = `
+          <span class="autocomplete-item-text">${etudiant.numero_matricule}</span>
+          <span class="autocomplete-item-sub">${etudiant.nom_complet} - ${etudiant.classe}</span>
+        `;
+        
+        li.addEventListener('click', function() {
+          inputMatricule.value = etudiant.numero_matricule;
+          autocompleteList.classList.remove('active');
+          autocompleteList.innerHTML = '';
+          currentHighlightedIndex = -1;
+          inputMatricule.focus();
+        });
+        
+        li.addEventListener('mouseenter', function() {
+          // Enlever la classe du précédent élément surlighté
+          const previousHighlighted = autocompleteList.querySelector('.highlighted');
+          if (previousHighlighted) {
+            previousHighlighted.classList.remove('highlighted');
+          }
+          li.classList.add('highlighted');
+          currentHighlightedIndex = index;
+        });
+        
+        li.addEventListener('mouseleave', function() {
+          li.classList.remove('highlighted');
+          currentHighlightedIndex = -1;
+        });
+        
+        autocompleteList.appendChild(li);
+      });
+      autocompleteList.classList.add('active');
+      currentHighlightedIndex = -1;
+    }
+  } catch (error) {
+    console.error('Erreur lors de la recherche:', error);
+    autocompleteList.innerHTML = '<li class="no-results">Erreur lors de la recherche</li>';
+    autocompleteList.classList.add('active');
+  }
+});
+
+// Navigation au clavier dans la liste d'autocomplétion
+inputMatricule.addEventListener('keydown', function(e) {
+  const items = autocompleteList.querySelectorAll('.autocomplete-item');
+  
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (currentHighlightedIndex < items.length - 1) {
+      currentHighlightedIndex++;
+      updateHighlight(items);
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (currentHighlightedIndex > 0) {
+      currentHighlightedIndex--;
+      updateHighlight(items);
+    }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (currentHighlightedIndex >= 0 && currentHighlightedIndex < items.length) {
+      items[currentHighlightedIndex].click();
+    } else if (autocompleteList.classList.contains('active')) {
+      autocompleteList.classList.remove('active');
+    }
+  } else if (e.key === 'Escape') {
+    autocompleteList.classList.remove('active');
+    currentHighlightedIndex = -1;
+  }
+});
+
+function updateHighlight(items) {
+  items.forEach((item, index) => {
+    if (index === currentHighlightedIndex) {
+      item.classList.add('highlighted');
+      item.scrollIntoView({ block: 'nearest' });
+    } else {
+      item.classList.remove('highlighted');
+    }
+  });
+}
+
+// Fermer la liste quand on clique ailleurs
+document.addEventListener('click', function(e) {
+  if (e.target !== inputMatricule && !e.target.closest('.autocomplete-container')) {
+    autocompleteList.classList.remove('active');
+    currentHighlightedIndex = -1;
+  }
+});
+</script>
+
+<%- include('partials/footer') %>

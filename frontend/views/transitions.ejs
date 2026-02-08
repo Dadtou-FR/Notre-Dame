@@ -1,0 +1,475 @@
+<%- include('partials/header', { title: 'Gestion des Années Scolaires' }) %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-calendar-alt"></i> Gestion des Années Scolaires</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#transitionModal">
+          <i class="fas fa-arrow-right"></i> Nouvelle Année Scolaire
+        </button>
+      </div>
+
+      <!-- Année Active -->
+      <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0"><i class="fas fa-star"></i> Année Scolaire Active</h5>
+        </div>
+        <div class="card-body">
+          <div id="annee-active">
+            <div class="text-center">
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Années Archivées -->
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="fas fa-archive"></i> Années Archivées</h5>
+        </div>
+        <div class="card-body">
+          <div id="annees-archives">
+            <div class="text-center">
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour la transition d'année -->
+<div class="modal fade" id="transitionModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="fas fa-arrow-right"></i> Transition vers Nouvelle Année Scolaire</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          <strong>Attention :</strong> Cette action va :
+          <ul class="mb-0 mt-2">
+            <li>Calculer les moyennes de tous les étudiants</li>
+            <li>Promouvoir les étudiants admis (moyenne ≥ 10) en classe supérieure</li>
+            <li>Faire redoubler les étudiants non admis</li>
+            <li>Archiver toutes les données de l'année actuelle</li>
+            <li>Créer une nouvelle année scolaire</li>
+          </ul>
+        </div>
+        
+        <form id="transitionForm">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="nouvelleAnneeSelect" class="form-label">Nouvelle Année Scolaire *</label>
+                <select id="nouvelleAnneeSelect" class="form-select" required>
+                  <option value="">Sélectionner une année existante ou choisir "Autre"</option>
+                  <option value="__autre__">Autre...</option>
+                </select>
+                <input type="text" class="form-control mt-2 d-none" id="nouvelleAnnee" 
+                       placeholder="Ex: 2025-2026">
+                <div class="form-text">Format: YYYY-YYYY</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="dateDebut" class="form-label">Date de Début *</label>
+                <input type="date" class="form-control" id="dateDebut" required>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="dateFin" class="form-label">Date de Fin *</label>
+                <input type="date" class="form-control" id="dateFin" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Seuil de Passage</label>
+                <div class="form-control-plaintext">
+                  <span class="badge bg-success">Moyenne ≥ 10 : Admis</span>
+                  <span class="badge bg-warning ms-2">Moyenne < 10 : Redoublant</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" id="confirmerTransition">
+          <i class="fas fa-arrow-right"></i> Effectuer la Transition
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour voir les détails d'une année archivée -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title"><i class="fas fa-chart-bar"></i> Détails de l'Année Scolaire</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="details-content">
+          <div class="text-center">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+        <button type="button" class="btn btn-primary" id="genererBulletin">
+          <i class="fas fa-file-pdf"></i> Générer Bulletins
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Charger les données au démarrage
+  chargerAnneeActive();
+  chargerAnneesArchives();
+  
+  // Gestion du formulaire de transition
+  document.getElementById('confirmerTransition').addEventListener('click', function() {
+    // Récupérer la valeur depuis le select ou le champ texte
+    const selectVal = document.getElementById('nouvelleAnneeSelect').value;
+    const inputVal = document.getElementById('nouvelleAnnee').value;
+    const nouvelleAnnee = (selectVal && selectVal !== '__autre__') ? selectVal : inputVal;
+    const dateDebut = document.getElementById('dateDebut').value;
+    const dateFin = document.getElementById('dateFin').value;
+    
+    if (!nouvelleAnnee || !dateDebut || !dateFin) {
+      alert('Veuillez remplir tous les champs');
+      return;
+    }
+    
+    if (confirm('Êtes-vous sûr de vouloir effectuer la transition ? Cette action est irréversible.')) {
+      effectuerTransition(nouvelleAnnee, dateDebut, dateFin);
+    }
+  });
+  
+  // Fonction pour suggérer les dates selon l'année scolaire
+  function suggererDates(anneeLabel) {
+    if (!anneeLabel) return;
+    const match = anneeLabel.match(/^(\d{4})-(\d{4})$/);
+    if (match) {
+      const anneeDebut = parseInt(match[1]);
+      const anneeFin = parseInt(match[2]);
+      if (!isNaN(anneeDebut) && !isNaN(anneeFin)) {
+        document.getElementById('dateDebut').value = `${anneeDebut}-09-01`;
+        document.getElementById('dateFin').value = `${anneeFin}-07-31`;
+      }
+    }
+  }
+
+  // Ajouter l'écouteur d'événements pour le champ de texte de nouvelle année
+  document.getElementById('nouvelleAnnee').addEventListener('input', function() {
+    suggererDates(this.value);
+  });
+
+  // Peuplage du select d'années existantes
+  const selectAnnee = document.getElementById('nouvelleAnneeSelect');
+  fetch('/annees-scolaires')
+    .then(r => r.json())
+    .then(d => {
+      if (d.success && Array.isArray(d.annees)) {
+        d.annees.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.annee_label;
+          opt.textContent = a.annee_label;
+          selectAnnee.insertBefore(opt, selectAnnee.querySelector('option[value="__autre__"]'));
+        });
+      }
+    })
+    .catch(err => {
+      console.error('Erreur chargement années:', err);
+    });
+
+  // Gérer le choix 'Autre...' et la suggestion des dates
+  selectAnnee.addEventListener('change', function() {
+    const textInput = document.getElementById('nouvelleAnnee');
+    if (this.value === '__autre__') {
+      textInput.classList.remove('d-none');
+      textInput.required = true;
+      textInput.value = ''; // Vider le champ texte
+      document.getElementById('dateDebut').value = ''; // Vider les dates
+      document.getElementById('dateFin').value = '';
+    } else {
+      textInput.classList.add('d-none');
+      textInput.required = false;
+      textInput.value = this.value;
+      if (this.value) {
+        suggererDates(this.value);
+      }
+    }
+  });
+});
+
+function chargerAnneeActive() {
+  fetch('/annees-scolaires/active')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.annee) {
+        document.getElementById('annee-active').innerHTML = `
+          <div class="row">
+            <div class="col-md-8">
+              <h4>${data.annee.annee_label}</h4>
+              <p class="text-muted">
+                <i class="fas fa-calendar"></i> 
+                Du ${new Date(data.annee.date_debut).toLocaleDateString('fr-FR')} 
+                au ${new Date(data.annee.date_fin).toLocaleDateString('fr-FR')}
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <span class="badge bg-success fs-6">Active</span>
+            </div>
+          </div>
+        `;
+      } else {
+        document.getElementById('annee-active').innerHTML = `
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            Aucune année scolaire active trouvée
+          </div>
+        `;
+      }
+    })
+    .catch(error => {
+      console.error('Erreur:', error);
+      document.getElementById('annee-active').innerHTML = `
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-circle"></i>
+          Erreur lors du chargement de l'année active
+        </div>
+      `;
+    });
+}
+
+function chargerAnneesArchives() {
+  fetch('/transitions/archives')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.archives.length > 0) {
+        const html = data.archives.map(annee => `
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <div class="col-md-6">
+                  <h5>${annee.annee_label}</h5>
+                  <p class="text-muted mb-0">
+                    <i class="fas fa-calendar"></i> 
+                    Du ${new Date(annee.date_debut).toLocaleDateString('fr-FR')} 
+                    au ${new Date(annee.date_fin).toLocaleDateString('fr-FR')}
+                  </p>
+                  <small class="text-muted">
+                    <i class="fas fa-archive"></i> 
+                    Archivée le ${new Date(annee.date_archivage).toLocaleDateString('fr-FR')}
+                  </small>
+                </div>
+                <div class="col-md-3">
+                  <div class="row text-center">
+                    <div class="col-4">
+                      <div class="text-success fw-bold">${annee.statistiques_transition.admis || 0}</div>
+                      <small>Admis</small>
+                    </div>
+                    <div class="col-4">
+                      <div class="text-warning fw-bold">${annee.statistiques_transition.redoublants || 0}</div>
+                      <small>Redoublants</small>
+                    </div>
+                    <div class="col-4">
+                      <div class="text-info fw-bold">${annee.statistiques_transition.sortants || 0}</div>
+                      <small>Sortants</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3 text-end">
+                  <button class="btn btn-outline-info btn-sm me-2" onclick="voirDetails('${annee.annee_label}')">
+                    <i class="fas fa-eye"></i> Détails
+                  </button>
+                  <button class="btn btn-outline-primary btn-sm" onclick="genererBulletins('${annee.annee_label}')">
+                    <i class="fas fa-file-pdf"></i> Bulletins
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+        
+        document.getElementById('annees-archives').innerHTML = html;
+      } else {
+        document.getElementById('annees-archives').innerHTML = `
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Aucune année archivée trouvée
+          </div>
+        `;
+      }
+    })
+    .catch(error => {
+      console.error('Erreur:', error);
+      document.getElementById('annees-archives').innerHTML = `
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-circle"></i>
+          Erreur lors du chargement des archives
+        </div>
+      `;
+    });
+}
+
+function effectuerTransition(nouvelleAnnee, dateDebut, dateFin) {
+  const btn = document.getElementById('confirmerTransition');
+  const originalText = btn.innerHTML;
+  
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Transition en cours...';
+  
+  fetch('/transitions/transition', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      nouvelleAnneeLabel: nouvelleAnnee,
+      dateDebut: dateDebut,
+      dateFin: dateFin
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert(`Transition effectuée avec succès !\n\nStatistiques :\n- Total étudiants : ${data.statistiques.total_etudiants}\n- Admis : ${data.statistiques.admis}\n- Redoublants : ${data.statistiques.redoublants}\n- Sortants : ${data.statistiques.sortants}`);
+      
+      // Fermer le modal et recharger les données
+      const modal = bootstrap.Modal.getInstance(document.getElementById('transitionModal'));
+      modal.hide();
+      
+        // Notifier les autres onglets que l'année scolaire a changé
+        try {
+          localStorage.setItem('annee_scolaire_changed_at', Date.now().toString());
+        } catch (e) {
+          console.warn('Impossible de définir localStorage pour notification de transition', e);
+        }
+
+      chargerAnneeActive();
+      chargerAnneesArchives();
+    } else {
+      alert('Erreur lors de la transition : ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    alert('Erreur lors de la transition : ' + error.message);
+  })
+  .finally(() => {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  });
+}
+
+function voirDetails(annee) {
+  fetch(`/transitions/archives/${annee}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+        document.getElementById('details-content').innerHTML = `
+          <div class="row">
+            <div class="col-md-6">
+              <h5>Statistiques de l'année ${annee}</h5>
+              <div class="row text-center">
+                <div class="col-4">
+                  <div class="card bg-success text-white">
+                    <div class="card-body">
+                      <h3>${data.statistiques.admis}</h3>
+                      <p class="mb-0">Admis</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="card bg-warning text-white">
+                    <div class="card-body">
+                      <h3>${data.statistiques.redoublants}</h3>
+                      <p class="mb-0">Redoublants</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="card bg-info text-white">
+                    <div class="card-body">
+                      <h3>${data.statistiques.sortants}</h3>
+                      <p class="mb-0">Sortants</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h5>Liste des étudiants</h5>
+              <div style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Nom</th>
+                      <th>Classe</th>
+                      <th>Moyenne</th>
+                      <th>Décision</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${data.archives.map(etudiant => `
+                      <tr>
+                        <td>${etudiant.prenom} ${etudiant.nom}</td>
+                        <td>${etudiant.classe}</td>
+                        <td>${etudiant.moyenne_generale.toFixed(2)}</td>
+                        <td>
+                          <span class="badge ${etudiant.decision === 'Admis' ? 'bg-success' : etudiant.decision === 'Redoublant' ? 'bg-warning' : 'bg-info'}">
+                            ${etudiant.decision}
+                          </span>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+        modal.show();
+      }
+    })
+    .catch(error => {
+      console.error('Erreur:', error);
+      alert('Erreur lors du chargement des détails');
+    });
+}
+
+function genererBulletins(annee) {
+  if (confirm(`Générer les bulletins pour l'année ${annee} ?`)) {
+    window.open(`/transitions/bulletin/${annee}`, '_blank');
+  }
+}
+</script>
+
+<%- include('partials/footer') %>
+

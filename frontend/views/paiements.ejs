@@ -1,0 +1,574 @@
+<%- include('partials/header', { title: 'Liste des paiements' }) %>
+<!-- Socket.IO Client -->
+<script src="/socket.io/socket.io.js"></script>
+
+<% let totalGeneral = 0; if (paiementsParEtudiant) { totalGeneral = paiementsParEtudiant.reduce((sum, item) => sum + item.totalPaye, 0); } %>
+<div class="row g-3 mb-4 dashboard-tiles">
+  <div class="col-6 col-sm-4 col-md-3">
+    <div class="tile stats-card orange text-center">
+      <div>
+        <div class="stat-value h4 mb-0"><%= totalGeneral.toLocaleString() %></div>
+        <small class="text-muted">Total encaissé (Ar)</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-sm-4 col-md-3">
+    <div class="tile stats-card blue text-center">
+      <div>
+        <div class="stat-value h4 mb-0"><%= paiementsParEtudiant ? paiementsParEtudiant.length : 0 %></div>
+        <small class="text-muted">Étudiants</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="h4 mb-0">
+      <i class="fas fa-credit-card me-2"></i>Paiements de scolarité
+      <span class="badge bg-success ms-2">
+        <i class="fas fa-shield-alt me-1"></i>Sécurisé
+      </span>
+    </h2>
+    <p class="text-muted mb-0">Vue mensuelle des paiements par étudiant</p>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    <select id="anneeFilter" class="form-select" style="width: auto;">
+      <option value="<%= new Date().getFullYear() %>"><%= new Date().getFullYear() %></option>
+      <option value="<%= new Date().getFullYear() - 1 %>"><%= new Date().getFullYear() - 1 %></option>
+    </select>
+    <a href="/paiements/logout" class="btn btn-outline-danger btn-modern" 
+       onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
+      <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+    </a>
+  </div>
+</div>
+
+<!-- Filtres et recherche -->
+<div class="card card-modern mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par nom ou matricule...">
+      </div>
+      <div class="col-md-2">
+        <input type="date" id="dateFilter" class="form-control" placeholder="Filtrer par date">
+      </div>
+      <div class="col-md-2">
+        <select id="classeFilter" class="form-select">
+          <option value="">Toutes les classes</option>
+          <option value="6ème A">6ème A</option>
+          <option value="6ème B">6ème B</option>
+          <option value="5ème A">5ème A</option>
+          <option value="5ème B">5ème B</option>
+          <option value="4ème A">4ème A</option>
+          <option value="4ème B">4ème B</option>
+          <option value="3ème A">3ème A</option>
+          <option value="3ème B">3ème B</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select id="statutFilter" class="form-select">
+          <option value="">Tous les statuts</option>
+          <option value="ok">À jour</option>
+          <option value="retard">En retard</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-outline-primary w-100" onclick="exportToExcel()">
+          <i class="fas fa-file-excel"></i>
+        </button>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-outline-success w-100" onclick="exportDailyPDF()" id="dailyPdfBtn" disabled>
+          <i class="fas fa-file-pdf me-1"></i>PDF Jour
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistiques de la journée -->
+<div class="card card-modern mb-4" id="dailyStats" style="display: none;">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-8">
+        <h6 class="mb-2"><i class="fas fa-calendar-day me-2"></i>Paiements du <span id="selectedDate"></span></h6>
+        <div class="row">
+          <div class="col-md-4">
+            <div class="text-center p-2 bg-light rounded">
+              <h5 class="text-primary mb-1" id="dailyCount">0</h5>
+              <small class="text-muted">Paiements</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-2 bg-light rounded">
+              <h5 class="text-success mb-1" id="dailyAmount">0 Ar</h5>
+              <small class="text-muted">Total</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-2 bg-light rounded">
+              <h5 class="text-info mb-1" id="dailyStudents">0</h5>
+              <small class="text-muted">Étudiants</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-success" onclick="exportDailyPDF()" id="dailyPdfBtn2">
+          <i class="fas fa-file-pdf me-2"></i>Générer PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Légende -->
+<div class="card card-modern mb-4">
+  <div class="card-body">
+    <div class="d-flex gap-4 align-items-center">
+      <small><strong>Légende:</strong></small>
+      <small><span class="badge bg-success">P</span> = Payé</small>
+      <small><span class="badge bg-warning">R</span> = En retard</small>
+      <small><span class="badge bg-secondary">-</span> = Non payé</small>
+      <small><strong>Droit d'inscription:</strong> Montant unique en début d'année</small>
+    </div>
+  </div>
+</div>
+
+<!-- Tableau des paiements mensuels -->
+<div class="card card-modern">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table id="tablePaiements" class="table table-hover table-bordered mb-0" style="font-size: 0.85rem;">
+        <thead class="table-primary">
+          <tr>
+            <th style="min-width: 200px; position: sticky; left: 0; background: #667eea; z-index: 10;">Étudiant</th>
+            <th style="min-width: 100px; text-align: center;">Droit</th>
+            <th style="min-width: 80px; text-align: center;">Jan</th>
+            <th style="min-width: 80px; text-align: center;">Fév</th>
+            <th style="min-width: 80px; text-align: center;">Mar</th>
+            <th style="min-width: 80px; text-align: center;">Avr</th>
+            <th style="min-width: 80px; text-align: center;">Mai</th>
+            <th style="min-width: 80px; text-align: center;">Juin</th>
+            <th style="min-width: 80px; text-align: center;">Juil</th>
+            <th style="min-width: 80px; text-align: center;">Août</th>
+            <th style="min-width: 80px; text-align: center;">Sep</th>
+            <th style="min-width: 80px; text-align: center;">Oct</th>
+            <th style="min-width: 80px; text-align: center;">Nov</th>
+            <th style="min-width: 80px; text-align: center;">Déc</th>
+            <th style="min-width: 120px; text-align: center; background: #f0f0f0;">Total</th>
+            <th style="min-width: 120px; text-align: center; position: sticky; right: 0; background: #667eea; z-index: 10;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (paiementsParEtudiant && paiementsParEtudiant.length > 0) { %>
+            <% paiementsParEtudiant.forEach(function(item) { %>
+              <tr data-classe="<%= item.etudiant.classe %>" data-nom="<%= item.etudiant.nom %> <%= item.etudiant.prenom %>">
+                <!-- Colonne Étudiant (fixe) -->
+                <td style="position: sticky; left: 0; background: white; z-index: 5;">
+                  <div>
+                    <strong><%= item.etudiant.prenom %> <%= item.etudiant.nom %></strong><br>
+                    <small class="text-muted">
+                      <%= item.etudiant.numero_matricule %> - <%= item.etudiant.classe %>
+                    </small>
+                  </div>
+                </td>
+                
+                <!-- Droit d'inscription -->
+                <td class="text-center" style="<%= item.droitInscription.paye ? 'background: #d4edda;' : 'background: #f8d7da;' %>">
+                  <% if (item.droitInscription.paye) { %>
+                    <span class="badge bg-success" title="Payé le <%= item.droitInscription.datePaiement %>">
+                      <%= item.droitInscription.montant.toLocaleString() %> Ar
+                    </span>
+                  <% } else { %>
+                    <button class="btn btn-sm btn-outline-danger" 
+                            onclick="ajouterPaiement('<%= item.etudiant.numero_matricule %>', 'Droit', <%= new Date().getFullYear() %>)">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  <% } %>
+                </td>
+                
+               <!-- Les 12 mois -->
+                  <% const moisList = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+                  moisList.forEach(function(mois) { 
+                    const paiementMois = item.paiementsMensuels[mois] || { paye: false, enRetard: false };
+                  %>
+                    <td class="text-center" style="<%= paiementMois.paye ? 'background: #d4edda;' : '' %>">
+                      <% if (paiementMois.paye) { %>
+                        <span class="badge bg-success" title="Payé le <%= paiementMois.datePaiement || '' %>">P</span>
+                      <% } else { %>
+                        <button class="btn btn-sm btn-outline-secondary btn-add-payment" 
+                                onclick='ajouterPaiement("<%= item.etudiant.numero_matricule %>", "<%= mois %>", <%= new Date().getFullYear() %>)'>
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      <% } %>
+                    </td>
+                  <% }) %>
+                
+                <!-- Total par étudiant -->
+                <td class="text-center" style="background: #e7f3ff; font-weight: bold;">
+                  <%= item.totalPaye.toLocaleString() %> Ar
+                </td>
+                
+                <!-- Actions (fixe à droite) -->
+                <td class="text-center" style="position: sticky; right: 0; background: white; z-index: 5;">
+                  <div class="btn-group">
+                    <a href="/paiements/etudiant/<%= item.etudiant.numero_matricule %>" 
+                       class="btn btn-sm btn-primary" 
+                       title="Voir détails">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="/paiements/edit/<%= item.etudiant._id %>" 
+                       class="btn btn-sm btn-warning" 
+                       title="Modifier">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <button onclick="genererRecu('<%= item.etudiant.numero_matricule %>')" 
+                            class="btn btn-sm btn-success" 
+                            title="Reçu">
+                      <i class="fas fa-receipt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="16" class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Aucun paiement enregistré</p>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+        <tfoot class="table-secondary">
+          <tr>
+            <th colspan="14" class="text-end">Total général:</th>
+            <th class="text-center">
+              <%= totalGeneral.toLocaleString() %> Ar
+            </th>
+            <th></th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour ajouter un paiement -->
+<div class="modal fade" id="modalAjouterPaiement" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Ajouter un paiement</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formAjouterPaiement" method="POST" action="/paiements/add">
+        <div class="modal-body">
+          <input type="hidden" id="modalMatricule" name="numero_matricule">
+          <input type="hidden" id="modalMois" name="mois">
+          <input type="hidden" id="modalAnnee" name="annee">
+          
+          <div class="mb-3">
+            <label class="form-label">Type de paiement</label>
+            <input type="text" id="modalTypePaiement" name="type_paiement" class="form-control" readonly>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Montant (Ar)</label>
+            <input type="number" name="montant" class="form-control" required min="0" step="100">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Date de paiement</label>
+            <input type="date" name="date_paiement" class="form-control" required value="<%= new Date().toISOString().split('T')[0] %>">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Méthode de paiement</label>
+            <select name="methode_paiement" class="form-select" required>
+              <option value="Espèces">Espèces</option>
+              <option value="Chèque">Chèque</option>
+              <option value="Virement">Virement</option>
+              <option value="Mobile Money">Mobile Money</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<script>
+// Fonction pour ajouter un paiement
+function ajouterPaiement(matricule, mois, annee) {
+  document.getElementById('modalMatricule').value = matricule;
+  document.getElementById('modalMois').value = mois;
+  document.getElementById('modalAnnee').value = annee;
+  document.getElementById('modalTypePaiement').value = mois === 'Droit' ? 'Droit' : 'Scolarité';
+  
+  const modal = new bootstrap.Modal(document.getElementById('modalAjouterPaiement'));
+  modal.show();
+}
+
+// Fonction pour générer un reçu
+function genererRecu(matricule) {
+  window.open(`/paiements/recu/${matricule}`, '_blank');
+}
+
+// Filtrage du tableau
+document.getElementById('searchInput').addEventListener('input', filterTable);
+document.getElementById('classeFilter').addEventListener('change', filterTable);
+document.getElementById('statutFilter').addEventListener('change', filterTable);
+document.getElementById('dateFilter').addEventListener('change', filterByDate);
+
+function filterTable() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const classeFilter = document.getElementById('classeFilter').value;
+  const rows = document.querySelectorAll('#tablePaiements tbody tr');
+  
+  rows.forEach(row => {
+    const nom = row.dataset.nom?.toLowerCase() || '';
+    const classe = row.dataset.classe || '';
+    
+    const matchSearch = !searchTerm || nom.includes(searchTerm);
+    const matchClasse = !classeFilter || classe === classeFilter;
+    
+    row.style.display = (matchSearch && matchClasse) ? '' : 'none';
+  });
+}
+
+// Export Excel
+function exportToExcel() {
+  const table = document.getElementById('tablePaiements');
+  const wb = XLSX.utils.table_to_book(table);
+  XLSX.writeFile(wb, `paiements_${new Date().getFullYear()}.xlsx`);
+}
+
+// Filtrage par date
+function filterByDate() {
+  const selectedDate = document.getElementById('dateFilter').value;
+  const dailyStats = document.getElementById('dailyStats');
+  const dailyPdfBtn = document.getElementById('dailyPdfBtn');
+  const dailyPdfBtn2 = document.getElementById('dailyPdfBtn2');
+  
+  if (!selectedDate) {
+    dailyStats.style.display = 'none';
+    dailyPdfBtn.disabled = true;
+    dailyPdfBtn2.disabled = true;
+    filterTable(); // Appliquer les autres filtres
+    return;
+  }
+  
+  // Charger les paiements de la date sélectionnée
+  fetch(`/paiements/daily/${selectedDate}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        displayDailyStats(data, selectedDate);
+        dailyPdfBtn.disabled = false;
+        dailyPdfBtn2.disabled = false;
+      } else {
+        console.error('Erreur:', data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur:', error);
+    });
+}
+
+// Afficher les statistiques de la journée
+function displayDailyStats(data, date) {
+  const dailyStats = document.getElementById('dailyStats');
+  const selectedDateSpan = document.getElementById('selectedDate');
+  const dailyCount = document.getElementById('dailyCount');
+  const dailyAmount = document.getElementById('dailyAmount');
+  const dailyStudents = document.getElementById('dailyStudents');
+  
+  // Formater la date
+  const dateObj = new Date(date);
+  const formattedDate = dateObj.toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  selectedDateSpan.textContent = formattedDate;
+  dailyCount.textContent = data.count || 0;
+  dailyAmount.textContent = (data.total || 0).toLocaleString() + ' Ar';
+  dailyStudents.textContent = data.students || 0;
+  
+  dailyStats.style.display = 'block';
+}
+
+// Export PDF des paiements journaliers
+function exportDailyPDF() {
+  const selectedDate = document.getElementById('dateFilter').value;
+  if (!selectedDate) {
+    alert('Veuillez sélectionner une date');
+    return;
+  }
+  
+    window.open(`/paiements/daily/pdf/${selectedDate}`, '_blank');
+}
+
+// Connexion Socket.IO
+const socket = io();
+
+// Écouter les changements d'année scolaire en temps réel
+socket.on('annee_scolaire_changed', (data) => {
+  console.info('Changement d\'année scolaire détecté:', data);
+  // Afficher une notification
+  const toastContainer = document.createElement('div');
+  toastContainer.className = 'toast-container';
+  toastContainer.innerHTML = `
+    <div class="custom-toast" role="alert">
+      <div class="toast-header">
+        <i class="fas fa-sync-alt fa-spin me-2"></i>
+        <strong class="me-auto">Changement d'année scolaire</strong>
+        <button type="button" class="btn-close" onclick="this.closest('.toast-container').remove()"></button>
+      </div>
+      <div class="toast-body">
+        <p class="mb-2"><i class="fas fa-info-circle me-2"></i>Une nouvelle année scolaire a été activée.</p>
+        <p class="mb-0 text-white-50">La page va être actualisée dans quelques secondes...</p>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(toastContainer);
+
+  // Ajouter la classe hiding avant de recharger
+  setTimeout(() => {
+    toastContainer.classList.add('hiding');
+  }, 1500);
+  
+  // Attendre 2 secondes puis recharger
+  setTimeout(() => {
+    location.reload();
+  }, 2000);
+});
+</script>
+
+<!-- Socket.IO Client -->
+<script src="/socket.io/socket.io.js"></script>
+}
+
+// Écouter les changements d'année scolaire déclenchés par la transition
+window.addEventListener('storage', function(event) {
+  if (!event) return;
+  if (event.key === 'annee_scolaire_changed_at') {
+    console.info('Année scolaire modifiée dans un autre onglet — rechargement des paiements');
+    // Recharger la page pour actualiser la grille de paiements
+    location.reload();
+  }
+});
+</script>
+
+<style>
+/* Amélioration du scroll horizontal */
+.table-responsive {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Style pour les cellules fixes */
+th[style*="position: sticky"],
+td[style*="position: sticky"] {
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+/* Bouton d'ajout petit */
+.btn-add-payment {
+  padding: 0.15rem 0.3rem;
+  font-size: 0.7rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  table {
+    font-size: 0.75rem !important;
+  }
+  
+  th, td {
+    padding: 0.3rem !important;
+    min-width: 60px !important;
+  }
+}
+
+/* Styles personnalisés pour les toasts de notification */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1050;
+  animation: slideIn 0.5s ease-out;
+}
+
+.custom-toast {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  min-width: 300px;
+  opacity: 0.95;
+  transform-origin: top right;
+}
+
+.custom-toast .toast-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 0.8rem 1rem;
+}
+
+.custom-toast .toast-body {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 1rem;
+  font-size: 0.95rem;
+}
+
+.custom-toast .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.custom-toast .btn-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 0.95;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    transform: translateX(0);
+    opacity: 0.95;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.toast-container.hiding {
+  animation: fadeOut 0.5s ease-in forwards;
+}
+</style>

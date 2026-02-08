@@ -1,0 +1,238 @@
+<%- include('partials/header', { title: 'Gestion des enseignants' }) %>
+
+<!-- En-tête avec titre et bouton d'ajout -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1 text-gradient">Enseignants</h1>
+    <p class="text-muted mb-0">Gérez les enseignants de l'établissement</p>
+  </div>
+  <div>
+    <a href="/enseignants/add" class="btn btn-primary btn-modern">
+      <i class="fas fa-plus me-2"></i>Ajouter un enseignant
+    </a>
+  </div>
+</div>
+
+<!-- Barre de recherche et filtres -->
+<div class="card card-modern mb-4 fade-in">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+          <input type="text" class="form-control" id="searchInput" placeholder="Rechercher un enseignant...">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" id="filterMatiere">
+          <option value="">Toutes les matières</option>
+          <option value="Catéchèse">Catéchèse</option>
+          <option value="Philosophie / Initiation">Philosophie / Initiation</option>
+          <option value="Malagasy">Malagasy</option>
+          <option value="Français">Français</option>
+          <option value="Anglais">Anglais</option>
+          <option value="Espagnol">Espagnol</option>
+          <option value="Histoire - Géographie">Histoire - Géographie</option>
+          <option value="Mathématiques">Mathématiques</option>
+          <option value="Physique - Chimie">Physique - Chimie</option>
+          <option value="SVT">SVT</option>
+          <option value="Informatique">Informatique</option>
+          <option value="EPS">EPS</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-outline-secondary btn-modern w-100" onclick="clearFilters()">
+          <i class="fas fa-times me-2"></i>Effacer les filtres
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tableau des enseignants -->
+<div class="card card-modern fade-in">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">
+      <i class="fas fa-chalkboard-teacher me-2"></i>Liste des enseignants
+    </h5>
+    <span class="badge bg-primary" id="teacherCount"><%= enseignants.length %> enseignant(s)</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-modern mb-0" id="teachersTable">
+        <thead>
+          <tr>
+            <th><i class="fas fa-user me-1"></i>Nom complet</th>
+            <th><i class="fas fa-book me-1"></i>Matière</th>
+            <th><i class="fas fa-school me-1"></i>Classes</th>
+            <th><i class="fas fa-layer-group me-1"></i>Niveaux</th>
+            <th><i class="fas fa-phone me-1"></i>Téléphone</th>
+            <th><i class="fas fa-envelope me-1"></i>Email</th>
+            <th><i class="fas fa-calendar me-1"></i>Date d'embauche</th>
+            <th class="text-center"><i class="fas fa-cogs me-1"></i>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (enseignants.length === 0) { %>
+            <tr>
+              <td colspan="10" class="text-center py-5">
+                <div class="text-muted">
+                  <i class="fas fa-user-slash fa-3x mb-3 d-block"></i>
+                  <h5>Aucun enseignant enregistré</h5>
+                  <p>Commencez par ajouter votre premier enseignant</p>
+                  <a href="/enseignants/add" class="btn btn-primary btn-modern">
+                    <i class="fas fa-plus me-2"></i>Ajouter un enseignant
+                  </a>
+                </div>
+              </td>
+            </tr>
+          <% } else { %>
+            <% enseignants.forEach(function(e){ %>
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="avatar-circle me-3">
+                      <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold"><%= e.prenom %> <%= e.nom %></div>
+                      <small class="text-muted">ID: <%= e._id.toString().substring(0, 8) %>...</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge bg-info"><%= e.matiere %></span>
+                </td>
+                <td>
+                  <% if (e.classes && e.classes.length > 0) { %>
+                    <% e.classes.forEach(function(classe) { %>
+                      <span class="badge bg-success me-1"><%= classe %></span>
+                    <% }) %>
+                  <% } else { %>
+                    <span class="text-muted">Aucune classe</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (e.classes && e.classes.length > 0) { %>
+                    <% const niveaux = [...new Set(e.classes.map(c => c.split(' ')[0]))]; %>
+                    <% niveaux.forEach(function(niveau) { %>
+                      <span class="badge bg-warning me-1"><%= niveau %></span>
+                    <% }) %>
+                  <% } else { %>
+                    <span class="text-muted">Aucun niveau</span>
+                  <% } %>
+                </td>
+                <td>
+                  <a href="tel:<%= e.telephone %>" class="text-decoration-none">
+                    <i class="fas fa-phone me-1"></i><%= e.telephone %>
+                  </a>
+                </td>
+                <td>
+                  <% if (e.email) { %>
+                    <a href="mailto:<%= e.email %>" class="text-decoration-none">
+                      <i class="fas fa-envelope me-1"></i><%= e.email %>
+                    </a>
+                  <% } else { %>
+                    <span class="text-muted">Non renseigné</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (e.date_embauche) { %>
+                    <%= new Date(e.date_embauche).toLocaleDateString('fr-FR') %>
+                  <% } else { %>
+                    <span class="text-muted">Non renseignée</span>
+                  <% } %>
+                </td>
+                <td class="text-center">
+                  <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary btn-sm" onclick="editTeacher('<%= e._id %>')" title="Modifier">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="viewTeacher('<%= e._id %>')" title="Voir détails">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="deleteTeacher('<%= e._id %>', '<%= e.prenom %> <%= e.nom %>')" title="Supprimer">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts pour la fonctionnalité -->
+<script>
+// Fonction de recherche
+document.getElementById('searchInput').addEventListener('input', function() {
+  const searchTerm = this.value.toLowerCase();
+  const rows = document.querySelectorAll('#teachersTable tbody tr');
+  
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(searchTerm) ? '' : 'none';
+  });
+  
+  updateTeacherCount();
+});
+
+// Fonction de filtrage par matière
+document.getElementById('filterMatiere').addEventListener('change', function() {
+  const filterValue = this.value;
+  const rows = document.querySelectorAll('#teachersTable tbody tr');
+  
+  rows.forEach(row => {
+    if (filterValue === '') {
+      row.style.display = '';
+    } else {
+      const matiereCell = row.cells[1];
+      const matiere = matiereCell.textContent.trim();
+      row.style.display = matiere.includes(filterValue) ? '' : 'none';
+    }
+  });
+  
+  updateTeacherCount();
+});
+
+// Fonction pour effacer les filtres
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('filterMatiere').value = '';
+  
+  const rows = document.querySelectorAll('#teachersTable tbody tr');
+  rows.forEach(row => {
+    row.style.display = '';
+  });
+  
+  updateTeacherCount();
+}
+
+// Fonction pour mettre à jour le compteur
+function updateTeacherCount() {
+  const visibleRows = document.querySelectorAll('#teachersTable tbody tr[style=""], #teachersTable tbody tr:not([style])');
+  document.getElementById('teacherCount').textContent = visibleRows.length + ' enseignant(s)';
+}
+
+// Fonction pour modifier un enseignant
+function editTeacher(id) {
+  window.location.href = '/enseignants/edit/' + id;
+}
+
+// Fonction pour voir les détails
+function viewTeacher(id) {
+  window.location.href = '/enseignants/view/' + id;
+}
+
+// Fonction pour supprimer un enseignant
+function deleteTeacher(id, name) {
+  if (confirm(`Êtes-vous sûr de vouloir supprimer l'enseignant "${name}" ?\n\nCette action est irréversible.`)) {
+    window.location.href = '/enseignants/delete/' + id;
+  }
+}
+</script>
+
+<%- include('partials/footer') %>

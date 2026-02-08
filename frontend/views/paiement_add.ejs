@@ -1,0 +1,144 @@
+<%- include('partials/header', { title: 'Gestion des paiements' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h4 mb-0">Frais de scolarité</h2>
+  <a href="/paiements" class="btn btn-outline-secondary btn-modern"><i class="fas fa-arrow-left me-2"></i>Retour</a>
+</div>
+
+<div class="card card-modern mb-4">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Sélection de l'étudiant</h5>
+  </div>
+  <div class="card-body">
+    <form id="studentForm" class="row g-3">
+      <div class="col-md-8">
+        <label class="form-label">Étudiant</label>
+        <select id="studentSelect" class="form-select" required>
+          <option value="">Sélectionner un étudiant</option>
+          <% (etudiants || []).forEach(function(e){ %>
+            <option value="<%= e.numero_matricule %>" data-nom="<%= e.nom %>" data-prenom="<%= e.prenom %>" data-classe="<%= e.classe %>">
+              <%= e.numero_matricule %> - <%= e.prenom %> <%= e.nom %> (<%= e.classe %>)
+            </option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Année scolaire</label>
+        <input id="annee" class="form-control" type="number" min="2020" max="2030" value="<%= new Date().getFullYear() %>" required>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="paymentTable" class="card card-modern" style="display: none;">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fas fa-table me-2"></i>Tableau des paiements mensuels</h5>
+  </div>
+  <div class="card-body">
+    <form id="paymentForm" method="post" action="/paiements/add">
+      <input type="hidden" id="numero_matricule" name="numero_matricule">
+      <input type="hidden" id="annee_hidden" name="annee">
+      
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+          <thead class="table-primary">
+            <tr>
+              <th>Mois</th>
+              <th>Montant (F)</th>
+              <th>Date de paiement</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% 
+            const mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            mois.forEach(function(mois, index) { 
+            %>
+            <tr>
+              <td>
+                <strong><%= mois %></strong>
+                <input type="hidden" name="mois_<%= index %>" value="<%= mois %>">
+              </td>
+              <td>
+                <input type="number" name="montant_<%= index %>" class="form-control" step="0.01" placeholder="0.00">
+              </td>
+              <td>
+                <input type="date" name="date_paiement_<%= index %>" class="form-control">
+              </td>
+              <td>
+                <select name="statut_<%= index %>" class="form-select">
+                  <option value="Non payé">Non payé</option>
+                  <option value="Payé">Payé</option>
+                  <option value="En retard">En retard</option>
+                </select>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <div>
+          <button type="button" class="btn btn-outline-primary" onclick="fillAllAmounts()">
+            <i class="fas fa-copy me-2"></i>Remplir tous les montants
+          </button>
+          <button type="button" class="btn btn-outline-success" onclick="markAllAsPaid()">
+            <i class="fas fa-check-double me-2"></i>Marquer tout comme payé
+          </button>
+        </div>
+        <button type="submit" class="btn btn-primary btn-modern">
+          <i class="fas fa-save me-2"></i>Enregistrer tous les paiements
+        </button>
+      </div>
+</form>
+  </div>
+</div>
+
+<script>
+document.getElementById('studentSelect').addEventListener('change', function() {
+  const selectedOption = this.options[this.selectedIndex];
+  const paymentTable = document.getElementById('paymentTable');
+  const numeroMatricule = document.getElementById('numero_matricule');
+  const anneeHidden = document.getElementById('annee_hidden');
+  
+  if (this.value) {
+    numeroMatricule.value = this.value;
+    anneeHidden.value = document.getElementById('annee').value;
+    paymentTable.style.display = 'block';
+  } else {
+    paymentTable.style.display = 'none';
+  }
+});
+
+document.getElementById('annee').addEventListener('change', function() {
+  const anneeHidden = document.getElementById('annee_hidden');
+  if (anneeHidden.value) {
+    anneeHidden.value = this.value;
+  }
+});
+
+function fillAllAmounts() {
+  const amount = prompt('Montant à appliquer à tous les mois:');
+  if (amount && !isNaN(amount)) {
+    document.querySelectorAll('input[name^="montant_"]').forEach(input => {
+      input.value = parseFloat(amount);
+    });
+  }
+}
+
+function markAllAsPaid() {
+  document.querySelectorAll('select[name^="statut_"]').forEach(select => {
+    select.value = 'Payé';
+  });
+  
+  const today = new Date().toISOString().split('T')[0];
+  document.querySelectorAll('input[name^="date_paiement_"]').forEach(input => {
+    if (!input.value) {
+      input.value = today;
+    }
+  });
+}
+</script>
+
+<%- include('partials/footer') %>

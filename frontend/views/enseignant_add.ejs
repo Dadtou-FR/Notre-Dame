@@ -1,0 +1,88 @@
+<%- include('partials/header', { title: 'Ajouter enseignant' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h4 mb-0">Nouvel enseignant</h2>
+  <div>
+    <a href="/enseignants" class="btn btn-outline-secondary btn-modern"><i class="fas fa-arrow-left me-2"></i>Retour</a>
+  </div>
+  </div>
+
+<% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+  <div class="alert alert-danger"><%= errorMessage %></div>
+<% } %>
+
+<div class="card card-modern fade-in">
+  <div class="card-header">
+    Informations de l'enseignant
+  </div>
+  <div class="card-body">
+    <form id="form-enseignant" method="post" action="/enseignants/add" data-autosave>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="nom">Nom</label>
+          <input id="nom" name="nom" class="form-control" required placeholder="Nom de famille">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label" for="prenom">Prénom</label>
+          <input id="prenom" name="prenom" class="form-control" required placeholder="Prénom">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label" for="matiere">Matière</label>
+          <select id="matiere" name="matiere" class="form-control" required>
+            <option value="">Sélectionnez une matière</option>
+            <% matieres.forEach(function(matiere) { %>
+              <option value="<%= matiere %>"><%= matiere %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-12">
+          <label class="form-label">Classes enseignées</label>
+          <div class="row">
+            <% classes.forEach(function(classe, index) { %>
+              <div class="col-md-3 col-sm-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="classes" value="<%= classe %>" id="classe_<%= index %>">
+                  <label class="form-check-label" for="classe_<%= index %>">
+                    <%= classe %>
+                  </label>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+          <div class="form-text">
+            <i class="fas fa-info-circle me-1"></i>Cochez les classes que l'enseignant enseigne
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-4">
+          <label class="form-label" for="telephone">Téléphone</label>
+          <input id="telephone" name="telephone" type="tel" class="form-control phone-input" required placeholder="Ex: 032 00 000 00" maxlength="15">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label" for="email">Email (optionnel)</label>
+          <input id="email" name="email" type="email" class="form-control" placeholder="exemple@email.com">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label" for="date_embauche">Date d'embauche (optionnel)</label>
+          <input id="date_embauche" name="date_embauche" type="date" class="form-control">
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <button type="reset" class="btn btn-outline-secondary btn-modern"><i class="fas fa-rotate-left me-2"></i>Réinitialiser</button>
+        <button type="submit" class="btn btn-primary btn-modern"><i class="fas fa-save me-2"></i>Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

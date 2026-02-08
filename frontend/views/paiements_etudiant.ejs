@@ -1,0 +1,222 @@
+<%- include('partials/header', { title: title }) %>
+
+<!-- Informations de l'étudiant -->
+<div class="card card-modern mb-4">
+  <div class="card-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">
+        <i class="fas fa-user-graduate me-2"></i>
+        Informations de l'étudiant
+      </h5>
+      <a href="/paiements" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-2"></i>Retour aux paiements
+      </a>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-3">
+        <div class="text-center">
+          <div class="mb-2">
+            <i class="fas fa-user-circle fa-3x text-primary"></i>
+          </div>
+          <h6 class="mb-1"><%= etudiant.prenom %> <%= etudiant.nom %></h6>
+          <small class="text-muted">Matricule: <%= etudiant.numero_matricule %></small>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-center">
+          <div class="badge bg-info fs-6 mb-2"><%= etudiant.classe || 'N/A' %></div>
+          <br><small class="text-muted">Classe</small>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-center">
+          <div class="badge bg-secondary fs-6 mb-2"><%= etudiant.niveau || 'N/A' %></div>
+          <br><small class="text-muted">Niveau</small>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-center">
+          <div class="badge bg-warning fs-6 mb-2"><%= etudiant.telephone_parent || 'N/A' %></div>
+          <br><small class="text-muted">Téléphone parent</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistiques des paiements -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="stats-card blue fade-in stagger-1">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h3 class="mb-0"><%= statistiques.totalPaiements %></h3>
+          <p class="mb-0">Total paiements</p>
+        </div>
+        <i class="fas fa-receipt fa-2x opacity-75 hover-rotate"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stats-card green fade-in stagger-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h3 class="mb-0"><%= statistiques.totalMontant.toLocaleString('fr-FR') %> F</h3>
+          <p class="mb-0">Total payé</p>
+        </div>
+        <i class="fas fa-coins fa-2x opacity-75 hover-rotate"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stats-card orange fade-in stagger-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h3 class="mb-0"><%= statistiques.paiementsEnRetard %></h3>
+          <p class="mb-0">En retard</p>
+        </div>
+        <i class="fas fa-clock fa-2x opacity-75 hover-rotate"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stats-card purple fade-in stagger-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h3 class="mb-0"><%= statistiques.paiementsNonPayes %></h3>
+          <p class="mb-0">Non payés</p>
+        </div>
+        <i class="fas fa-exclamation-triangle fa-2x opacity-75 hover-rotate"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Paiements par année -->
+<% Object.keys(paiementsParAnnee).sort((a, b) => b - a).forEach(annee => { %>
+  <div class="card card-modern mb-4">
+    <div class="card-header">
+      <h6 class="mb-0">
+        <i class="fas fa-calendar-alt me-2"></i>
+        Année scolaire <%= annee %>
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive table-modern">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Mois</th>
+              <th>Montant</th>
+              <th>Date de paiement</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% paiementsParAnnee[annee].forEach(paiement => { %>
+              <tr>
+                <td>
+                  <span class="badge bg-info"><%= paiement.mois %></span>
+                </td>
+                <td>
+                  <strong><%= paiement.montant.toLocaleString('fr-FR') %> F</strong>
+                </td>
+                <td>
+                  <i class="fas fa-calendar me-1 text-muted"></i>
+                  <%= new Date(paiement.date_paiement).toLocaleDateString('fr-FR') %>
+                </td>
+                <td>
+                  <% if (paiement.statut === 'Payé') { %>
+                    <span class="badge bg-success">
+                      <i class="fas fa-check me-1"></i>Payé
+                    </span>
+                  <% } else if (paiement.statut === 'En retard') { %>
+                    <span class="badge bg-warning">
+                      <i class="fas fa-clock me-1"></i>En retard
+                    </span>
+                  <% } else { %>
+                    <span class="badge bg-danger">
+                      <i class="fas fa-times me-1"></i>Non payé
+                    </span>
+                  <% } %>
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <a href="/paiements/delete/<%= paiement._id %>" 
+                       class="btn btn-sm btn-outline-danger" 
+                       onclick="return confirm('Supprimer ce paiement ?')">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Résumé de l'année -->
+      <div class="row mt-3">
+        <div class="col-md-4">
+          <div class="text-center">
+            <div class="badge bg-success fs-6">
+              <%= paiementsParAnnee[annee].filter(p => p.statut === 'Payé').length %>
+            </div>
+            <br><small>Payés</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="text-center">
+            <div class="badge bg-warning fs-6">
+              <%= paiementsParAnnee[annee].filter(p => p.statut === 'En retard').length %>
+            </div>
+            <br><small>En retard</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="text-center">
+            <div class="badge bg-danger fs-6">
+              <%= paiementsParAnnee[annee].filter(p => p.statut === 'Non payé').length %>
+            </div>
+            <br><small>Non payés</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% }) %>
+
+<!-- Actions rapides -->
+<div class="card card-modern">
+  <div class="card-header">
+    <h6 class="mb-0">
+      <i class="fas fa-tools me-2"></i>
+      Actions rapides
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-4">
+        <a href="/paiements/add" class="btn btn-primary btn-modern w-100">
+          <i class="fas fa-plus me-2"></i>Ajouter un paiement
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a href="/etudiants/edit/<%= etudiant._id %>" class="btn btn-info btn-modern w-100">
+          <i class="fas fa-edit me-2"></i>Modifier l'étudiant
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a href="/bulletin?matricule=<%= etudiant.numero_matricule %>" class="btn btn-success btn-modern w-100">
+          <i class="fas fa-file-alt me-2"></i>Générer bulletin
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+

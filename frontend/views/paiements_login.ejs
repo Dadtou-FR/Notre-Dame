@@ -1,0 +1,197 @@
+<%- include('partials/header', { title: 'Connexion - Paiements' }) %>
+
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-modern fade-in mt-5">
+        <div class="card-header text-center">
+          <h4 class="mb-0">
+            <i class="fas fa-lock me-2"></i>Accès aux Paiements
+          </h4>
+          <p class="text-muted mb-0 mt-2">Saisissez le mot de passe pour accéder aux informations financières</p>
+        </div>
+        <div class="card-body">
+          <!-- Messages d'erreur -->
+          <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+            <div class="alert alert-danger">
+              <i class="fas fa-exclamation-triangle me-2"></i><%= errorMessage %>
+            </div>
+          <% } %>
+          
+          <!-- Messages de succès -->
+          <% if (typeof successMessage !== 'undefined' && successMessage) { %>
+            <div class="alert alert-success">
+              <i class="fas fa-check-circle me-2"></i><%= successMessage %>
+            </div>
+          <% } %>
+
+          <form method="post" action="/paiements/login" id="loginForm">
+            <div class="mb-4">
+              <label for="password" class="form-label">
+                <i class="fas fa-key me-1"></i>Mot de passe
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-lock"></i>
+                </span>
+                <input 
+                  type="password" 
+                  class="form-control" 
+                  id="password" 
+                  name="password" 
+                  required 
+                  placeholder="Saisissez le mot de passe"
+                  autocomplete="current-password"
+                >
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button" 
+                  id="togglePassword"
+                  title="Afficher/Masquer le mot de passe"
+                >
+                  <i class="fas fa-eye" id="toggleIcon"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary btn-modern">
+                <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+              </button>
+            </div>
+          </form>
+
+          <hr class="my-4">
+          
+          <div class="text-center">
+            <small class="text-muted">
+              <i class="fas fa-shield-alt me-1"></i>
+              Accès sécurisé aux informations financières
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations de sécurité -->
+      <div class="card card-modern mt-3">
+        <div class="card-body">
+          <h6 class="text-primary mb-3">
+            <i class="fas fa-info-circle me-2"></i>Informations de sécurité
+          </h6>
+          <ul class="list-unstyled small text-muted">
+            <li><i class="fas fa-check me-2"></i>Session sécurisée avec mot de passe</li>
+            <li><i class="fas fa-check me-2"></i>Accès limité aux informations financières</li>
+            <li><i class="fas fa-check me-2"></i>Déconnexion automatique après inactivité</li>
+            <li><i class="fas fa-check me-2"></i>Protection des données sensibles</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script>
+// Fonction pour afficher/masquer le mot de passe
+document.getElementById('togglePassword').addEventListener('click', function() {
+  const passwordInput = document.getElementById('password');
+  const toggleIcon = document.getElementById('toggleIcon');
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    toggleIcon.classList.remove('fa-eye');
+    toggleIcon.classList.add('fa-eye-slash');
+  } else {
+    passwordInput.type = 'password';
+    toggleIcon.classList.remove('fa-eye-slash');
+    toggleIcon.classList.add('fa-eye');
+  }
+});
+
+// Validation du formulaire
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  const password = document.getElementById('password').value.trim();
+  
+  if (!password) {
+    e.preventDefault();
+    alert('Veuillez saisir le mot de passe');
+    return false;
+  }
+  
+  if (password.length < 3) {
+    e.preventDefault();
+    alert('Le mot de passe doit contenir au moins 3 caractères');
+    return false;
+  }
+});
+
+// Focus automatique sur le champ mot de passe
+document.getElementById('password').focus();
+
+// Animation de chargement lors de la soumission
+document.getElementById('loginForm').addEventListener('submit', function() {
+  const submitBtn = this.querySelector('button[type="submit"]');
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Connexion...';
+  submitBtn.disabled = true;
+});
+</script>
+
+<style>
+/* Styles spécifiques pour la page de connexion */
+.card-modern {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.input-group-text {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+}
+
+.form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.15);
+}
+
+.btn-modern {
+  transition: all 0.3s ease;
+}
+
+.btn-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Animation d'entrée */
+.fade-in {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 1rem;
+  }
+  
+  .card {
+    margin-top: 2rem !important;
+  }
+}
+</style>
+
+<%- include('partials/footer') %>
+
+
+

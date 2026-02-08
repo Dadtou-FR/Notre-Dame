@@ -1,0 +1,24 @@
+{
+  "name": "gestion-ecole",
+  "version": "1.0.0",
+  "description": "Application de gestion d'école",
+  "main": "backend/index.js",
+  "scripts": {
+    "start": "cd backend && node --no-deprecation index.js",
+    "dev": "cd backend && nodemon --exec \"node --no-deprecation\" index.js",
+    "dev:open": "start /B powershell -NoProfile -ExecutionPolicy Bypass -Command \"Start-Job { Start-Sleep -Seconds 2; Start-Process 'http://localhost:8080' } | Out-Null\" && cd backend && nodemon --exec \"node --no-deprecation\" index.js",
+    "test": "cd backend && jest",
+    "seed": "cd backend && node --no-deprecation scripts/seed.js",
+    "reset": "cd backend && node --no-deprecation scripts/reset.js",
+    "kill-port": "cd backend && node --no-deprecation scripts/kill-port.js",
+    "dev:clean": "npm run kill-port && npm run dev:open"
+  },
+  "keywords": [
+    "école",
+    "gestion",
+    "étudiants",
+    "nodejs"
+  ],
+  "author": "Votre nom",
+  "license": "MIT"
+}

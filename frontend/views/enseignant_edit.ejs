@@ -1,0 +1,179 @@
+<%- include('partials/header', { title: 'Modifier l\'enseignant' }) %>
+
+<!-- En-tête avec navigation -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1 text-gradient">Modifier l'enseignant</h1>
+    <p class="text-muted mb-0">Modifiez les informations de <%= enseignant.prenom %> <%= enseignant.nom %></p>
+  </div>
+  <div>
+    <a href="/enseignants/view/<%= enseignant._id %>" class="btn btn-outline-info btn-modern me-2">
+      <i class="fas fa-eye me-2"></i>Voir les détails
+    </a>
+    <a href="/enseignants" class="btn btn-outline-secondary btn-modern">
+      <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+    </a>
+  </div>
+</div>
+
+<% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+  <div class="alert alert-danger"><%= errorMessage %></div>
+<% } %>
+
+<!-- Formulaire de modification -->
+<div class="card card-modern fade-in">
+  <div class="card-header">
+    <h5 class="mb-0">
+      <i class="fas fa-edit me-2"></i>Modifier les informations
+    </h5>
+  </div>
+  <div class="card-body">
+    <form id="form-enseignant-edit" method="post" action="/enseignants/edit/<%= enseignant._id %>">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="nom">Nom</label>
+          <input id="nom" name="nom" class="form-control" required 
+                 value="<%= enseignant.nom %>" placeholder="Nom de famille">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label" for="prenom">Prénom</label>
+          <input id="prenom" name="prenom" class="form-control" required 
+                 value="<%= enseignant.prenom %>" placeholder="Prénom">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label" for="matiere">Matière</label>
+          <select id="matiere" name="matiere" class="form-control" required>
+            <option value="">Sélectionnez une matière</option>
+            <% matieres.forEach(function(matiere) { %>
+              <option value="<%= matiere %>" <%= enseignant.matiere === matiere ? 'selected' : '' %>><%= matiere %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-12">
+          <label class="form-label" for="classes">Classes enseignées</label>
+          <select id="classes" name="classes" class="form-control" multiple required>
+            <% classes.forEach(function(classe) { %>
+              <option value="<%= classe %>" <%= (enseignant.classes || []).includes(classe) ? 'selected' : '' %>><%= classe %></option>
+            <% }) %>
+          </select>
+          <div class="form-text">
+            <i class="fas fa-info-circle me-1"></i>Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs classes
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-4">
+          <label class="form-label" for="telephone">Téléphone</label>
+          <input id="telephone" name="telephone" type="tel" class="form-control phone-input" required 
+                 value="<%= enseignant.telephone %>" placeholder="Ex: 032 00 000 00" maxlength="15">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label" for="email">Email (optionnel)</label>
+          <input id="email" name="email" type="email" class="form-control" 
+                 value="<%= enseignant.email || '' %>" placeholder="exemple@email.com">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label" for="date_embauche">Date d'embauche (optionnel)</label>
+          <input id="date_embauche" name="date_embauche" type="date" class="form-control" 
+                 value="<%= enseignant.date_embauche ? new Date(enseignant.date_embauche).toISOString().split('T')[0] : '' %>">
+        </div>
+      </div>
+
+      <!-- Informations de l'enseignant -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Informations actuelles :</strong> 
+            Cet enseignant a été créé le <%= new Date(enseignant.createdAt).toLocaleDateString('fr-FR') %> 
+            <% if (enseignant.updatedAt && enseignant.updatedAt !== enseignant.createdAt) { %>
+              et modifié pour la dernière fois le <%= new Date(enseignant.updatedAt).toLocaleDateString('fr-FR') %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-4">
+        <div>
+          <button type="button" class="btn btn-outline-secondary btn-modern" onclick="resetForm()">
+            <i class="fas fa-rotate-left me-2"></i>Réinitialiser
+          </button>
+        </div>
+        <div>
+          <a href="/enseignants/view/<%= enseignant._id %>" class="btn btn-outline-info btn-modern me-2">
+            <i class="fas fa-eye me-2"></i>Annuler
+          </a>
+          <button type="submit" class="btn btn-primary btn-modern">
+            <i class="fas fa-save me-2"></i>Enregistrer les modifications
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script>
+// Fonction pour réinitialiser le formulaire
+function resetForm() {
+  if (confirm('Êtes-vous sûr de vouloir réinitialiser le formulaire ?\n\nToutes les modifications non sauvegardées seront perdues.')) {
+    document.getElementById('form-enseignant-edit').reset();
+  }
+}
+
+// Validation du formulaire
+document.getElementById('form-enseignant-edit').addEventListener('submit', function(e) {
+  const nom = document.getElementById('nom').value.trim();
+  const prenom = document.getElementById('prenom').value.trim();
+  const matiere = document.getElementById('matiere').value.trim();
+  const telephone = document.getElementById('telephone').value.trim();
+  
+  if (!nom || !prenom || !matiere || !telephone) {
+    e.preventDefault();
+    alert('Veuillez remplir tous les champs obligatoires (Nom, Prénom, Matière, Téléphone)');
+    return false;
+  }
+  
+  // Validation du téléphone (format basique)
+  const phoneRegex = /^[0-9\s\+\-\(\)]+$/;
+  if (!phoneRegex.test(telephone)) {
+    e.preventDefault();
+    alert('Veuillez entrer un numéro de téléphone valide');
+    return false;
+  }
+  
+  // Confirmation avant soumission
+  if (!confirm('Êtes-vous sûr de vouloir modifier les informations de cet enseignant ?')) {
+    e.preventDefault();
+    return false;
+  }
+});
+
+// Auto-save des modifications (optionnel)
+let autoSaveTimeout;
+const form = document.getElementById('form-enseignant-edit');
+const inputs = form.querySelectorAll('input, select, textarea');
+
+inputs.forEach(input => {
+  input.addEventListener('input', function() {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+      // Ici on pourrait implémenter un auto-save local
+      console.log('Modifications détectées...');
+    }, 2000);
+  });
+});
+</script>
+
+<%- include('partials/footer') %>
+
+
+

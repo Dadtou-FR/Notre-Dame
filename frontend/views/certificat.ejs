@@ -1,0 +1,83 @@
+<%- include('partials/header', { title: 'Certificat de scolarité' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h4 mb-0">Générer un certificat</h2>
+  <div>
+    <a href="/" class="btn btn-outline-secondary btn-modern"><i class="fas fa-arrow-left me-2"></i>Retour</a>
+  </div>
+</div>
+
+<div class="card card-modern fade-in mb-4">
+  <div class="card-header">Recherche par matricule</div>
+  <div class="card-body">
+    <form method="get" action="/certificat" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="matricule">Matricule de l'étudiant</label>
+        <input id="matricule" name="matricule" class="form-control" value="<%= (query && query.matricule) || '' %>" placeholder="Ex: 2025-0001">
+      </div>
+      <div class="col-md-6 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary btn-modern"><i class="fas fa-search me-2"></i>Rechercher</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% if (etudiant) { %>
+<div class="card card-modern">
+  <div class="card-header">Informations et génération</div>
+  <div class="card-body">
+    <form id="form-certif" method="get" action="/certificat/pdf" class="row g-3">
+      <input type="hidden" name="matricule" value="<%= etudiant.numero_matricule %>">
+
+      <div class="col-md-6">
+        <label class="form-label">Nom</label>
+        <input class="form-control" name="nom" value="<%= etudiant.nom %>">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Prénom</label>
+        <input class="form-control" name="prenom" value="<%= etudiant.prenom %>">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Né(e) le</label>
+        <input class="form-control" name="date_naissance" value="<%= etudiant.date_naissance ? new Date(etudiant.date_naissance).toLocaleDateString('fr-CA') : '' %>" placeholder="JJ/MM/AAAA">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">à (Lieu de naissance)</label>
+        <input class="form-control" name="lieu_naissance" value="<%= etudiant.lieu_naissance || '' %>">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fréquente l'établissement du</label>
+        <input class="form-control" name="frequente_du" placeholder="MM/AAAA">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">au</label>
+        <input class="form-control" name="frequente_au" placeholder="MM/AAAA">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Nom du Père</label>
+        <input class="form-control" name="nom_pere" value="<%= etudiant.nom_pere || '' %>">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Nom de la Mère</label>
+        <input class="form-control" name="nom_mere" value="<%= etudiant.nom_mere || '' %>">
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">Acte d'État Civil N°</label>
+        <input class="form-control" name="acte_numero" value="<%= etudiant.acte_numero || '' %>">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Du</label>
+        <input class="form-control" name="acte_du" value="<%= etudiant.acte_date ? new Date(etudiant.acte_date).toLocaleDateString('fr-CA') : '' %>" placeholder="JJ/MM/AAAA">
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-3">
+        <button type="submit" class="btn btn-primary btn-modern"><i class="fas fa-file-pdf me-2"></i>Télécharger le PDF</button>
+      </div>
+    </form>
+  </div>
+</div>
+<% } %>
+
+<%- include('partials/footer') %>
+
+

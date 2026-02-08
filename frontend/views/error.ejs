@@ -1,0 +1,35 @@
+<%- include('partials/header', { title: title || 'Erreur' }) %>
+
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card card-modern fade-in">
+        <div class="card-header bg-danger text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <%= title || 'Erreur' %>
+          </h5>
+        </div>
+        <div class="card-body text-center">
+          <div class="mb-4">
+            <i class="fas fa-times-circle fa-4x text-danger"></i>
+          </div>
+          <h6 class="text-muted mb-4">
+            <%= message || 'Une erreur est survenue' %>
+          </h6>
+          <div class="d-flex gap-2 justify-content-center">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-modern">
+              <i class="fas fa-arrow-left me-2"></i>Retour
+            </a>
+            <a href="/" class="btn btn-primary btn-modern">
+              <i class="fas fa-home me-2"></i>Accueil
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+

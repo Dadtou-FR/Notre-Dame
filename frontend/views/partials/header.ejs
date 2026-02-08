@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Gestion École</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+    /* Persistent active state for sidebar nav links */
+    .sidebar-nav .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        color: #333;
+        border-radius: 6px;
+        transition: background-color .15s ease, color .15s ease;
+        text-decoration: none;
+    }
+    .sidebar-nav .nav-link:hover {
+        background-color: rgba(22, 6, 247, 0.04);
+        color: inherit;
+    }
+    .sidebar-nav .nav-link.active {
+        background-color: #667eea; /* couleur active */
+        color: #fff !important;
+    }
+    .sidebar-nav .nav-link.active .nav-text {
+        font-weight: 600;
+    }
+    /* Style pour le bouton Déconnexion en en-tête */
+    .header-user .btn-deconnexion {
+        color: #fff !important;
+        background-color: #dc3545 !important; /* rouge Bootstrap danger */
+        border-color: #dc3545 !important;
+        font-weight: 600;
+    }
+    .header-user .btn-deconnexion:hover {
+        background-color: #c82333 !important;
+        border-color: #bd2130 !important;
+    }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">ECOLE NOTRE DAME DU SACRE COEUR</h3>
+        </div>
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-home"></i>
+                    <span class="nav-text">Accueil</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/etudiants">
+                    <i class="fas fa-user-graduate"></i>
+                    <span class="nav-text">Étudiants</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/enseignants">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span class="nav-text">Enseignants</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/paiements">
+                    <i class="fas fa-receipt"></i>
+                    <span class="nav-text">Paiements</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/notes">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span class="nav-text">Notes</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/bulletin">
+                    <i class="fas fa-file-alt"></i>
+                    <span class="nav-text">Bulletin</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/certificat">
+                    <i class="fas fa-certificate"></i>
+                    <span class="nav-text">Certificat</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/annees">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="nav-text">Années</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/transitions">
+                    <i class="fas fa-arrow-right"></i>
+                    <span class="nav-text">Transitions</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/bulletins-archives">
+                    <i class="fas fa-archive"></i>
+                    <span class="nav-text">Bulletins Archives</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+        <script>
+        // Gérer l'état "active" persistant pour les boutons de la barre de navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const links = Array.from(document.querySelectorAll('.sidebar-nav .nav-link'));
+                if (!links || links.length === 0) return;
+
+                // Helper : normaliser un href pour comparaison (supprimer slash final)
+                const normalize = href => (href || '').replace(/\/$/, '') || '/';
+
+                const currentPath = normalize(window.location.pathname);
+                const stored = localStorage.getItem('sidebar_active_href');
+
+                // Définir l'élément actif : priorité au stored, sinon au chemin courant
+                const targetHref = stored ? normalize(stored) : currentPath;
+
+                let matched = false;
+                links.forEach(l => {
+                    const href = normalize(l.getAttribute('href'));
+                    // Marquer actif si href correspond exactement ou si c'est la racine et le chemin est '/'
+                    if (href === targetHref) {
+                        l.classList.add('active');
+                        matched = true;
+                    } else {
+                        l.classList.remove('active');
+                    }
+                });
+
+                // Si aucun lien n'a été matché par stored ou pathname, essayer une correspondance "startsWith"
+                if (!matched) {
+                    links.forEach(l => {
+                        const href = normalize(l.getAttribute('href'));
+                        if (href !== '/' && currentPath.startsWith(href)) {
+                            l.classList.add('active');
+                            matched = true;
+                        }
+                    });
+                }
+
+                // Ajouter le gestionnaire de clic : met à jour la classe active et persiste dans localStorage
+                links.forEach(l => l.addEventListener('click', function() {
+                    try { localStorage.setItem('sidebar_active_href', this.getAttribute('href')); } catch (e) { /* silence */ }
+                    links.forEach(x => x.classList.remove('active'));
+                    this.classList.add('active');
+                }));
+            } catch (e) {
+                console.warn('Erreur initialisation sidebar active state', e);
+            }
+        });
+        </script>
+
+    <div id="sidebarOverlay" class="sidebar-overlay" aria-hidden="true"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <header class="main-header">
+            <div class="header-content">
+                <div class="d-flex align-items-center">
+                    <button id="sidebarToggle" class="btn btn-outline-light d-md-none me-2" aria-label="Ouvrir le menu"><i class="fas fa-bars"></i></button>
+                    <button id="sidebarCollapse" class="btn btn-outline-light d-none d-md-inline-block me-3" aria-label="Réduire le menu"><i class="fas fa-angle-double-left"></i></button>
+                    <h1 class="page-title mb-0"><%= title %></h1>
+                </div>
+                <div class="header-info">
+                    <span class="time" id="current-time"></span>
+                    <span class="date" id="current-date"></span>
+                </div>
+                <div class="header-user ms-3">
+                    <% if (user && user.authenticated) { %>
+                                                        <span class="me-2">Connecté: <strong><%= user.username %></strong></span>
+                                                        <a href="/logout" class="btn btn-sm btn-deconnexion">Déconnexion</a>
+                                                    <% } else { %>
+                                                        <a href="/login" class="btn btn-sm btn-outline-primary">Connexion</a>
+                                                    <% } %>
+                            </div>
+            </div>
+        </header>
+        
+        <div class="content-wrapper">

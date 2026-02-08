@@ -1,0 +1,209 @@
+<%- include('partials/header', { title: 'Bulletins Archivés' }) %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-file-pdf"></i> Bulletins des Années Archivées</h2>
+        <button class="btn btn-secondary" onclick="window.history.back()">
+          <i class="fas fa-arrow-left"></i> Retour
+        </button>
+      </div>
+
+      <!-- Sélection de l'année -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="fas fa-calendar"></i> Sélectionner l'Année Scolaire</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <label for="anneeSelect" class="form-label">Année Scolaire</label>
+              <select class="form-select" id="anneeSelect" onchange="chargerEtudiants()">
+                <option value="">Sélectionner une année...</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="rechercheEtudiant" class="form-label">Rechercher un étudiant</label>
+              <input type="text" class="form-control" id="rechercheEtudiant" 
+                     placeholder="Nom, prénom ou matricule..." onkeyup="filtrerEtudiants()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Liste des étudiants -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="fas fa-users"></i> Étudiants de l'Année Sélectionnée</h5>
+        </div>
+        <div class="card-body">
+          <div id="liste-etudiants">
+            <div class="text-center text-muted">
+              <i class="fas fa-info-circle"></i>
+              Veuillez sélectionner une année scolaire pour voir les étudiants
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let etudiantsActuels = [];
+let anneeActuelle = '';
+
+document.addEventListener('DOMContentLoaded', function() {
+  chargerAnnees();
+});
+
+function chargerAnnees() {
+  fetch('/transitions/archives')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.archives.length > 0) {
+        const select = document.getElementById('anneeSelect');
+        select.innerHTML = '<option value="">Sélectionner une année...</option>' +
+          data.archives.map(annee => 
+            `<option value="${annee.annee_label}">${annee.annee_label}</option>`
+          ).join('');
+      } else {
+        document.getElementById('anneeSelect').innerHTML = '<option value="">Aucune année archivée</option>';
+      }
+    })
+    .catch(error => {
+      console.error('Erreur:', error);
+      document.getElementById('anneeSelect').innerHTML = '<option value="">Erreur de chargement</option>';
+    });
+}
+
+function chargerEtudiants() {
+  const annee = document.getElementById('anneeSelect').value;
+  if (!annee) {
+    document.getElementById('liste-etudiants').innerHTML = `
+      <div class="text-center text-muted">
+        <i class="fas fa-info-circle"></i>
+        Veuillez sélectionner une année scolaire
+      </div>
+    `;
+    return;
+  }
+
+  anneeActuelle = annee;
+  
+  fetch(`/transitions/archives/${annee}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.archives.length > 0) {
+        etudiantsActuels = data.archives;
+        afficherEtudiants(etudiantsActuels);
+      } else {
+        document.getElementById('liste-etudiants').innerHTML = `
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Aucun étudiant trouvé pour l'année ${annee}
+          </div>
+        `;
+      }
+    })
+    .catch(error => {
+      console.error('Erreur:', error);
+      document.getElementById('liste-etudiants').innerHTML = `
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-circle"></i>
+          Erreur lors du chargement des étudiants
+        </div>
+      `;
+    });
+}
+
+function afficherEtudiants(etudiants) {
+  if (etudiants.length === 0) {
+    document.getElementById('liste-etudiants').innerHTML = `
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        Aucun étudiant trouvé
+      </div>
+    `;
+    return;
+  }
+
+  const html = `
+    <div class="row">
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Matricule</th>
+                <th>Nom Complet</th>
+                <th>Classe</th>
+                <th>Moyenne</th>
+                <th>Décision</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${etudiants.map(etudiant => `
+                <tr>
+                  <td><strong>${etudiant.numero_matricule}</strong></td>
+                  <td>${etudiant.prenom} ${etudiant.nom}</td>
+                  <td>${etudiant.classe}</td>
+                  <td>
+                    <span class="badge ${etudiant.moyenne_generale >= 10 ? 'bg-success' : 'bg-warning'}">
+                      ${etudiant.moyenne_generale.toFixed(2)}/20
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge ${etudiant.decision === 'Admis' ? 'bg-success' : etudiant.decision === 'Redoublant' ? 'bg-warning' : 'bg-info'}">
+                      ${etudiant.decision}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-primary btn-sm" onclick="genererBulletin('${etudiant.numero_matricule}')">
+                      <i class="fas fa-file-pdf"></i> Bulletin
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('liste-etudiants').innerHTML = html;
+}
+
+function filtrerEtudiants() {
+  const recherche = document.getElementById('rechercheEtudiant').value.toLowerCase();
+  
+  if (!recherche) {
+    afficherEtudiants(etudiantsActuels);
+    return;
+  }
+  
+  const etudiantsFiltres = etudiantsActuels.filter(etudiant => 
+    etudiant.nom.toLowerCase().includes(recherche) ||
+    etudiant.prenom.toLowerCase().includes(recherche) ||
+    etudiant.numero_matricule.toLowerCase().includes(recherche) ||
+    `${etudiant.prenom} ${etudiant.nom}`.toLowerCase().includes(recherche)
+  );
+  
+  afficherEtudiants(etudiantsFiltres);
+}
+
+function genererBulletin(matricule) {
+  if (!anneeActuelle) {
+    alert('Veuillez sélectionner une année scolaire');
+    return;
+  }
+  
+  // Ouvrir le bulletin PDF dans un nouvel onglet
+  window.open(`/transitions/bulletin-pdf/${anneeActuelle}/${matricule}`, '_blank');
+}
+</script>
+
+<%- include('partials/footer') %>

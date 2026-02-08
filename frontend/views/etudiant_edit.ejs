@@ -1,0 +1,273 @@
+<%- include('partials/header', { title: 'Modifier étudiant' }) %>
+
+<!-- Header avec navigation -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="slide-in-left">
+    <h2 class="h4 mb-0 text-gradient">Modifier l'étudiant</h2>
+    <p class="text-muted mb-0">Modifier les informations de <%= etudiant.prenom %> <%= etudiant.nom %></p>
+  </div>
+  <div class="slide-in-right">
+    <a href="/etudiants" class="btn btn-outline-secondary btn-modern hover-lift">
+      <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+    </a>
+  </div>
+</div>
+
+<% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+  <div class="alert alert-danger"><%= errorMessage %></div>
+<% } %>
+
+<!-- Formulaire principal - OUVERTURE DU FORM ICI -->
+<form id="form-etudiant" method="post" action="/etudiants/edit/<%= etudiant._id %>">
+  <div class="row g-4">
+    <!-- Informations de base -->
+    <div class="col-lg-8">
+      <div class="card card-modern fade-in">
+        <div class="card-header d-flex align-items-center">
+          <i class="fas fa-user-graduate me-3 text-primary"></i>
+          <div>
+            <h5 class="mb-0">Informations de base</h5>
+            <small class="text-muted">Données essentielles de l'étudiant</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            <!-- Matricule -->
+            <div class="col-md-4">
+              <div class="form-floating">
+                <input id="numero_matricule" name="numero_matricule" class="form-control" value="<%= etudiant.numero_matricule %>" required placeholder="Ex: 2025-0001">
+                <label for="numero_matricule">Numéro matricule</label>
+              </div>
+              <div class="form-text">Identifiant unique de l'étudiant</div>
+            </div>
+
+            <!-- Nom -->
+            <div class="col-md-4">
+              <div class="form-floating">
+                <input id="nom" name="nom" class="form-control" value="<%= etudiant.nom %>" required placeholder="Nom de famille">
+                <label for="nom">Nom de famille</label>
+              </div>
+            </div>
+
+            <!-- Prénom -->
+            <div class="col-md-4">
+              <div class="form-floating">
+                <input id="prenom" name="prenom" class="form-control" value="<%= etudiant.prenom %>" required placeholder="Prénom">
+                <label for="prenom">Prénom</label>
+              </div>
+            </div>
+
+            <!-- Niveau et Classe -->
+            <div class="col-md-6">
+              <div class="form-floating">
+                <select id="niveau" name="niveau" class="form-select" required>
+                  <option value="">Sélectionner un niveau</option>
+                  <option value="Maternelles" <%= etudiant.niveau === 'Maternelles' ? 'selected' : '' %>>Maternelles</option>
+                  <option value="Primaires" <%= etudiant.niveau === 'Primaires' ? 'selected' : '' %>>Primaires</option>
+                  <option value="Premier cycle" <%= etudiant.niveau === 'Premier cycle' ? 'selected' : '' %>>Premier cycle</option>
+                  <option value="Second cycle" <%= etudiant.niveau === 'Second cycle' ? 'selected' : '' %>>Second cycle</option>
+                  <option value="Classe supérieure" <%= etudiant.niveau === 'Classe supérieure' ? 'selected' : '' %>>Classe supérieure</option>
+                </select>
+                <label for="niveau">Niveau scolaire</label>
+              </div>
+            </div>
+  
+            <div class="col-md-6">
+              <div class="form-floating">
+                <select id="classe" name="classe" class="form-select" required>
+                  <option value="">Sélectionner une classe</option>
+                  <option value="PS I" <%= etudiant.classe === 'PS I' ? 'selected' : '' %>>PS I</option>
+                  <option value="PS II" <%= etudiant.classe === 'PS II' ? 'selected' : '' %>>PS II</option>
+                  <option value="MS I" <%= etudiant.classe === 'MS I' ? 'selected' : '' %>>MS I</option>
+                  <option value="MS II" <%= etudiant.classe === 'MS II' ? 'selected' : '' %>>MS II</option>
+                  <option value="12 ème I" <%= etudiant.classe === '12 ème I' ? 'selected' : '' %>>12 ème I</option>
+                  <option value="12 ème II" <%= etudiant.classe === '12 ème II' ? 'selected' : '' %>>12 ème II</option>
+                  <option value="12 ème III" <%= etudiant.classe === '12 ème III' ? 'selected' : '' %>>12 ème III</option>
+                  <option value="12 ème IV" <%= etudiant.classe === '12 ème IV' ? 'selected' : '' %>>12 ème IV</option>
+                  <option value="12 ème V" <%= etudiant.classe === '12 ème V' ? 'selected' : '' %>>12 ème V</option>
+                  <option value="11 ème I" <%= etudiant.classe === '11 ème I' ? 'selected' : '' %>>11 ème I</option>
+                  <option value="11 ème II" <%= etudiant.classe === '11 ème II' ? 'selected' : '' %>>11 ème II</option>
+                  <option value="11 ème III" <%= etudiant.classe === '11 ème III' ? 'selected' : '' %>>11 ème III</option>
+                  <option value="11 ème IV" <%= etudiant.classe === '11 ème IV' ? 'selected' : '' %>>11 ème IV</option>
+                  <option value="11 ème V" <%= etudiant.classe === '11 ème V' ? 'selected' : '' %>>11 ème V</option>
+                  <option value="10 ème I" <%= etudiant.classe === '10 ème I' ? 'selected' : '' %>>10 ème I</option>
+                  <option value="10 ème II" <%= etudiant.classe === '10 ème II' ? 'selected' : '' %>>10 ème II</option>
+                  <option value="10 ème III" <%= etudiant.classe === '10 ème III' ? 'selected' : '' %>>10 ème III</option>
+                  <option value="10 ème IV" <%= etudiant.classe === '10 ème IV' ? 'selected' : '' %>>10 ème IV</option>
+                  <option value="10 ème V" <%= etudiant.classe === '10 ème V' ? 'selected' : '' %>>10 ème V</option>
+                  <option value="9 ème I" <%= etudiant.classe === '9 ème I' ? 'selected' : '' %>>9 ème I</option>
+                  <option value="9 ème II" <%= etudiant.classe === '9 ème II' ? 'selected' : '' %>>9 ème II</option>
+                  <option value="9 ème III" <%= etudiant.classe === '9 ème III' ? 'selected' : '' %>>9 ème III</option>
+                  <option value="9 ème IV" <%= etudiant.classe === '9 ème IV' ? 'selected' : '' %>>9 ème IV</option>
+                  <option value="9 ème V" <%= etudiant.classe === '9 ème V' ? 'selected' : '' %>>9 ème V</option>
+                  <option value="8 ème I" <%= etudiant.classe === '8 ème I' ? 'selected' : '' %>>8 ème I</option>
+                  <option value="8 ème II" <%= etudiant.classe === '8 ème II' ? 'selected' : '' %>>8 ème II</option>
+                  <option value="8 ème III" <%= etudiant.classe === '8 ème III' ? 'selected' : '' %>>8 ème III</option>
+                  <option value="8 ème IV" <%= etudiant.classe === '8 ème IV' ? 'selected' : '' %>>8 ème IV</option>
+                  <option value="8 ème V" <%= etudiant.classe === '8 ème V' ? 'selected' : '' %>>8 ème V</option>
+                  <option value="7 ème I" <%= etudiant.classe === '7 ème I' ? 'selected' : '' %>>7 ème I</option>
+                  <option value="7 ème II" <%= etudiant.classe === '7 ème II' ? 'selected' : '' %>>7 ème II</option>
+                  <option value="7 ème III" <%= etudiant.classe === '7 ème III' ? 'selected' : '' %>>7 ème III</option>
+                  <option value="7 ème IV" <%= etudiant.classe === '7 ème IV' ? 'selected' : '' %>>7 ème IV</option>
+                  <option value="7 ème V" <%= etudiant.classe === '7 ème V' ? 'selected' : '' %>>7 ème V</option>
+                  <option value="6ème I" <%= etudiant.classe === '6ème I' ? 'selected' : '' %>>6ème I</option>  
+                  <option value="6ème II" <%= etudiant.classe === '6ème II' ? 'selected' : '' %>>6ème II</option> 
+                  <option value="6ème III" <%= etudiant.classe === '6ème III' ? 'selected' : '' %>>6ème III</option>
+                  <option value="6ème IV" <%= etudiant.classe === '6ème IV' ? 'selected' : '' %>>6ème IV</option>
+                  <option value="6ème V" <%= etudiant.classe === '6ème V' ? 'selected' : '' %>>6ème V</option>
+                  <option value="5ème I" <%= etudiant.classe === '5ème I' ? 'selected' : '' %>>5ème I</option>
+                  <option value="5ème II" <%= etudiant.classe === '5ème II' ? 'selected' : '' %>>5ème II</option>
+                  <option value="5ème III" <%= etudiant.classe === '5ème III' ? 'selected' : '' %>>5ème III</option>  
+                  <option value="5ème IV" <%= etudiant.classe === '5ème IV' ? 'selected' : '' %>>5ème IV</option>
+                  <option value="5ème V" <%= etudiant.classe === '5ème V' ? 'selected' : '' %>>5ème V</option>
+                  <option value="4ème I" <%= etudiant.classe === '4ème I' ? 'selected' : '' %>>4ème I</option>
+                  <option value="4ème II" <%= etudiant.classe === '4ème II' ? 'selected' : '' %>>4ème II</option>
+                  <option value="4ème III" <%= etudiant.classe === '4ème III' ? 'selected' : '' %>>4ème III</option>
+                  <option value="4ème IV" <%= etudiant.classe === '4ème IV' ? 'selected' : '' %>>4ème IV</option>
+                  <option value="4ème V" <%= etudiant.classe === '4ème V' ? 'selected' : '' %>>4ème V</option>
+                  <option value="3ème I" <%= etudiant.classe === '3ème I' ? 'selected' : '' %>>3ème I</option>
+                  <option value="3ème II" <%= etudiant.classe === '3ème II' ? 'selected' : '' %>>3ème II</option>
+                  <option value="3ème III" <%= etudiant.classe === '3ème III' ? 'selected' : '' %>>3ème III</option>    
+                  <option value="3ème IV" <%= etudiant.classe === '3ème IV' ? 'selected' : '' %>>3ème IV</option>
+                  <option value="3ème V" <%= etudiant.classe === '3ème V' ? 'selected' : '' %>>3ème V</option>
+                  <option value="2nde i" <%= etudiant.classe === '2nde I' ? 'selected' : '' %>>2nde I</option>
+                  <option value="2nde II" <%= etudiant.classe === '2nde II' ? 'selected' : '' %>>2nde II</option>   
+                  <option value="2nde III" <%= etudiant.classe === '2nde III' ? 'selected' : '' %>>2nde III</option>
+                  <option value="2nde IV" <%= etudiant.classe === '2nde IV' ? 'selected' : '' %>>2nde IV</option>
+                  <option value="2nde V" <%= etudiant.classe === '2nde V' ? 'selected' : '' %>>2nde V</option>
+                  <option value="1ère AI" <%= etudiant.classe === '1ère AI' ? 'selected' : '' %>>1ère AI</option>
+                  <option value="1ère AII" <%= etudiant.classe === '1ère AII' ? 'selected' : '' %>>1ère AII</option>
+                  <option value="1ère C" <%= etudiant.classe === '1ère C' ? 'selected' : '' %>>1ère C</option>
+                  <option value="1ère DI" <%= etudiant.classe === '1ère DI' ? 'selected' : '' %>>1ère DI</option>
+                  <option value="1ère DII" <%= etudiant.classe === '1ère DII' ? 'selected' : '' %>>1ère DII</option>
+                  <option value="Terminale AI" <%= etudiant.classe === 'Terminale AI' ? 'selected' : '' %>>Terminale AI</option>
+                  <option value="Terminale AII" <%= etudiant.classe === 'Terminale AII' ? 'selected' : '' %>>Terminale AII</option>
+                  <option value="Terminale C" <%= etudiant.classe === 'Terminale C' ? 'selected' : '' %>>Terminale C</option>
+                  <option value="Terminale DI" <%= etudiant.classe === 'Terminale DI' ? 'selected' : '' %>>Terminale DI</option>
+                  <option value="Terminale DII" <%= etudiant.classe === 'Terminale DII' ? 'selected' : '' %>>Terminale DII</option>
+                </select>
+                <label for="classe">Classe</label>
+              </div>
+            </div>
+
+            <!-- Contact -->
+            <div class="col-md-8">
+              <div class="form-floating">
+                <input id="telephone_parent" name="telephone_parent" type="tel" class="form-control phone-input" value="<%= etudiant.telephone_parent %>" required placeholder="Ex: 032 00 000 00" maxlength="15">
+                <label for="telephone_parent">Téléphone du parent</label>
+              </div>
+              <div class="form-text">
+                <i class="fas fa-info-circle me-1"></i>Format: +261 032 23 405 67 (min. 10 chiffres)
+              </div>
+            </div>
+
+            <!-- Vaccination -->
+            <div class="col-md-4 d-flex align-items-center">
+              <div class="form-check form-switch form-check-lg">
+                <input class="form-check-input" type="checkbox" id="est_vaccine" name="est_vaccine" <%= etudiant.est_vaccine ? 'checked' : '' %>>
+                <label class="form-check-label" for="est_vaccine">
+                  <i class="fas fa-syringe me-2 text-success"></i>Vacciné
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Informations personnelles --> 
+    <div class="col-lg-4">
+      <div class="card card-modern fade-in stagger-1">
+        <div class="card-header d-flex align-items-center">
+          <i class="fas fa-id-card me-3 text-info"></i>
+          <div>
+            <h5 class="mb-0">Informations personnelles</h5>
+            <small class="text-muted">Données complémentaires</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="date_naissance" name="date_naissance" type="date" class="form-control" value="<%= etudiant.date_naissance ? new Date(etudiant.date_naissance).toISOString().split('T')[0] : '' %>">
+                <label for="date_naissance">Date de naissance</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="lieu_naissance" name="lieu_naissance" class="form-control" value="<%= etudiant.lieu_naissance || '' %>" placeholder="Ex: Mahajanga">
+                <label for="lieu_naissance">Lieu de naissance</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="nom_pere" name="nom_pere" class="form-control" value="<%= etudiant.nom_pere || '' %>" placeholder="Nom complet du père">
+                <label for="nom_pere">Nom du père</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="nom_mere" name="nom_mere" class="form-control" value="<%= etudiant.nom_mere || '' %>" placeholder="Nom complet de la mère">
+                <label for="nom_mere">Nom de la mère</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="acte_numero" name="acte_numero" class="form-control" value="<%= etudiant.acte_numero || '' %>" placeholder="Numéro de l'acte">
+                <label for="acte_numero">N° acte de naissance</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <input id="acte_date" name="acte_date" type="date" class="form-control" value="<%= etudiant.acte_date ? new Date(etudiant.acte_date).toISOString().split('T')[0] : '' %>">
+                <label for="acte_date">Date de l'acte</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+<!-- FERMETURE DU FORM ICI - après les informations personnelles -->
+
+<!-- Actions -->
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card card-modern fade-in stagger-2">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-info btn-modern" onclick="generateMatricule()">
+              <i class="fas fa-magic me-2"></i>Générer matricule
+            </button>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="reset" form="form-etudiant" class="btn btn-outline-secondary btn-modern">
+              <i class="fas fa-rotate-left me-2"></i>Réinitialiser
+            </button>
+            <button type="submit" form="form-etudiant" class="btn btn-primary btn-modern">
+              <i class="fas fa-save me-2"></i>Modifier l'étudiant
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Génération automatique du matricule
+function generateMatricule() {
+  const year = new Date().getFullYear();
+  const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+  document.getElementById('numero_matricule').value = `${year}-${random}`;
+}
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,99 @@
+<%- include('partials/header') %>
+
+<!-- Dashboard - Hero tiles -->
+<div class="row g-3 mb-4 dashboard-tiles">
+    <div class="col-6 col-sm-4 col-md-3">
+        <div class="tile stats-card blue text-center">
+            <div class="d-flex align-items-center justify-content-center">
+                <i class="fas fa-user-graduate fa-2x me-3"></i>
+                <div>
+                    <div class="stat-value h3 mb-0" data-count="<%= stats.etudiants %>"><%= stats.etudiants %></div>
+                    <small class="text-muted">Étudiants</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-md-3">
+        <div class="tile stats-card green text-center">
+            <div class="d-flex align-items-center justify-content-center">
+                <i class="fas fa-chalkboard-teacher fa-2x me-3"></i>
+                <div>
+                    <div class="stat-value h3 mb-0" data-count="<%= stats.enseignants %>"><%= stats.enseignants %></div>
+                    <small class="text-muted">Enseignants</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-md-3">
+        <div class="tile stats-card orange text-center">
+            <div class="d-flex align-items-center justify-content-center">
+                <i class="fas fa-receipt fa-2x me-3"></i>
+                <div>
+                    <div class="stat-value h3 mb-0" data-count="<%= stats.paiements %>"><%= stats.paiements %></div>
+                    <small class="text-muted">Paiements</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-md-3">
+        <div class="tile stats-card red text-center">
+            <div class="d-flex align-items-center justify-content-center">
+                <i class="fas fa-phone fa-2x me-3"></i>
+                <div>
+                    <div class="stat-value h3 mb-0" data-count="<%= stats.telephones || 0 %>"><%= stats.telephones || 0 %></div>
+                    <small class="text-muted">Téléphones parents</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main dashboard grid -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Recettes & Dépenses</h5>
+                <div style="height:260px;">
+                    <canvas id="recettesDepensesChart" style="width:100%;height:100%;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Activité récente</h5>
+                <ul class="list-unstyled mb-0 small text-muted">
+                    <li>Aucun événement récent</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card stats-card mb-4">
+            <div class="card-body">
+                <h6 class="text-muted">Résumé</h6>
+                <div class="d-flex align-items-center justify-content-between mt-3">
+                    <div>
+                        <div class="stat-value h4 mb-0" data-count="<%= stats.paiements || 0 %>"><%= stats.paiements || 0 %></div>
+                        <small class="text-muted">Paiements</small>
+                    </div>
+                    <i class="fas fa-wallet fa-2x text-muted"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Raccourcis</h6>
+                <div class="d-grid gap-2 mt-3">
+                    <a href="/etudiants/add" class="btn btn-primary btn-sm">Nouvel étudiant</a>
+                    <a href="/paiements/add" class="btn btn-outline-primary btn-sm">Ajouter paiement</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

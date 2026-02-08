@@ -1,0 +1,107 @@
+<%- include('partials/header', { title: 'Années scolaires' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="h4 mb-0">Gestion des années scolaires</h2>
+  <button class="btn btn-primary btn-modern" data-bs-toggle="modal" data-bs-target="#modalAnnee">
+    <i class="fas fa-plus me-2"></i>Nouvelle année
+  </button>
+  </div>
+
+<div class="card card-modern fade-in">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Année</th>
+            <th>Dates</th>
+            <th>Statut</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (annees || []).forEach(function(a){ %>
+            <tr>
+              <td><strong><%= a.annee_label %></strong></td>
+              <td>
+                <i class="fas fa-calendar me-1 text-muted"></i>
+                <%= new Date(a.date_debut).toLocaleDateString('fr-FR') %> - 
+                <%= new Date(a.date_fin).toLocaleDateString('fr-FR') %>
+              </td>
+              <td>
+                <% if (a.est_active) { %>
+                  <span class="badge bg-success">Active</span>
+                <% } else { %>
+                  <span class="badge bg-secondary">Inactive</span>
+                <% } %>
+              </td>
+              <td class="text-center">
+                <div class="btn-group">
+                  <% if (!a.est_active) { %>
+                    <form method="post" action="/annees-scolaires/<%= a._id %>/activer" style="display:inline;">
+                      <button class="btn btn-sm btn-outline-primary" title="Activer" onclick="return confirm('Activer cette année ?')">
+                        <i class="fas fa-check"></i>
+                      </button>
+                    </form>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+          <% if (!annees || annees.length === 0) { %>
+            <tr>
+              <td colspan="4" class="text-center text-muted py-5">
+                <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                Aucune année définie
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal création -->
+<div class="modal fade" id="modalAnnee" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Nouvelle année scolaire</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="/annees-scolaires">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Libellé (ex: 2024-2025)</label>
+            <input name="annee_label" class="form-control" required>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Date début</label>
+              <input type="date" name="date_debut" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date fin</label>
+              <input type="date" name="date_fin" class="form-control" required>
+            </div>
+          </div>
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" value="1" id="setActive" name="est_active">
+            <label class="form-check-label" for="setActive">
+              Définir comme année active
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+

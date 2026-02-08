@@ -1,0 +1,78 @@
+<%- include('partials/header', { title: 'Modifier une note' }) %>
+
+<form method="post" action="/notes/edit/<%= note._id %>" class="row g-3">
+  <div class="col-md-6">
+    <label class="form-label">Numéro matricule de l'élève *</label>
+    <input type="text" name="numero_matricule" class="form-control" value="<%= note.numero_matricule %>" required>
+  </div>
+  
+  <div class="col-md-6">
+    <label class="form-label">Matière *</label>
+    <select name="matiere" class="form-select" required>
+      <option value="">Sélectionner une matière</option>
+      <option value="Catéchèse" <%= note.matiere === 'Catéchèse' ? 'selected' : '' %>>Catéchèse</option>
+      <option value="Philosophie / Initiation" <%= note.matiere === 'Philosophie / Initiation' ? 'selected' : '' %>>Philosophie / Initiation</option>
+      <option value="Malagasy" <%= note.matiere === 'Malagasy' ? 'selected' : '' %>>Malagasy</option>
+      <option value="Français" <%= note.matiere === 'Français' ? 'selected' : '' %>>Français</option>
+      <option value="Anglais" <%= note.matiere === 'Anglais' ? 'selected' : '' %>>Anglais</option>
+      <option value="Espagnol" <%= note.matiere === 'Espagnol' ? 'selected' : '' %>>Espagnol</option>
+      <option value="Histoire - Géographie" <%= note.matiere === 'Histoire - Géographie' ? 'selected' : '' %>>Histoire - Géographie</option>
+      <option value="Mathématiques" <%= note.matiere === 'Mathématiques' ? 'selected' : '' %>>Mathématiques</option>
+      <option value="Physique - Chimie" <%= note.matiere === 'Physique - Chimie' ? 'selected' : '' %>>Physique - Chimie</option>
+      <option value="SVT" <%= note.matiere === 'SVT' ? 'selected' : '' %>>SVT</option>
+      <option value="Informatique" <%= note.matiere === 'Informatique' ? 'selected' : '' %>>Informatique</option>
+      <option value="EPS" <%= note.matiere === 'EPS' ? 'selected' : '' %>>EPS</option>
+    </select>
+  </div>
+  
+  <div class="col-md-6">
+    <label class="form-label">Note (sur 20) *</label>
+    <input type="number" name="note" class="form-control" min="0" max="20" step="0.5" value="<%= note.note %>" required>
+  </div>
+  
+  <div class="col-md-6">
+    <label class="form-label">Session *</label>
+    <select name="session" class="form-select" required>
+      <option value="">Sélectionner une session</option>
+      <option value="1er" <%= note.session === '1er' ? 'selected' : '' %>>1er</option>
+      <option value="2ème" <%= note.session === '2ème' ? 'selected' : '' %>>2ème</option>
+      <option value="3ème" <%= note.session === '3ème' ? 'selected' : '' %>>3ème</option>
+    </select>
+  </div>
+  
+  <div class="col-md-6">
+    <label class="form-label">Type d'évaluation *</label>
+    <select name="type_evaluation" id="type_evaluation" class="form-select" required>
+      <option value="">Sélectionner un type</option>
+      <option value="Controle Continu" <%= note.type_evaluation === 'Controle Continu' ? 'selected' : '' %>>Controle Continu</option>
+      <option value="Examen" <%= note.type_evaluation === 'Examen' ? 'selected' : '' %>>Examen</option>
+    </select>
+  </div>
+  
+  <div class="col-12">
+    <label class="form-label">Commentaire</label>
+    <textarea name="commentaire" class="form-control" rows="3" placeholder="Commentaire optionnel sur la note"><%= note.commentaire || '' %></textarea>
+  </div>
+  
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Modifier la note</button>
+    <a href="/notes" class="btn btn-secondary ms-2"><i class="fas fa-arrow-left me-1"></i>Retour</a>
+  </div>
+</form>
+
+<script>
+// Aucun code JavaScript nécessaire pour l'édition simple
+</script>
+
+<%- include('partials/footer') %>
+
+
+
+
+
+
+
+
+
+
+

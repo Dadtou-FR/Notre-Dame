@@ -1,0 +1,39 @@
+<%- include('partials/header', { title: title || 'Compte' }) %>
+
+<div class="container mt-4" style="max-width:600px;">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title mb-3"><%= title %></h4>
+
+      <% if (errorMessage && errorMessage.length) { %>
+        <div class="alert alert-danger"><%= errorMessage %></div>
+      <% } %>
+      <% if (successMessage && successMessage.length) { %>
+        <div class="alert alert-success"><%= successMessage %></div>
+      <% } %>
+
+      <form method="post" action="<%= action %>">
+        <div class="mb-3">
+          <label class="form-label">Nom d'utilisateur</label>
+          <input name="username" type="text" class="form-control" required value="<%= user ? user.username : '' %>" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Mot de passe <small class="text-muted"><%= user ? '(laisser vide pour conserver)' : '' %></small></label>
+          <input name="password" type="password" class="form-control" <%= user ? '' : 'required' %> />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Rôle</label>
+          <select name="role" class="form-select">
+            <option value="user" <%= user && user.role === 'user' ? 'selected' : '' %>>Utilisateur</option>
+            <option value="admin" <%= user && user.role === 'admin' ? 'selected' : '' %>>Administrateur</option>
+          </select>
+        </div>
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

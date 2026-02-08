@@ -1,0 +1,156 @@
+<%- include('partials/header', { title: 'Liste des étudiants' }) %>
+
+<% const totalEtudiants = (etudiants || []).length; const vaccinated = (etudiants || []).filter(e => e.est_vaccine).length; %>
+<div class="row g-3 mb-4 dashboard-tiles">
+  <div class="col-6 col-sm-4 col-md-3">
+    <div class="tile stats-card blue text-center">
+      <div>
+        <div class="stat-value h4 mb-0"><%= totalEtudiants %></div>
+        <small class="text-muted">Total étudiants</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-sm-4 col-md-3">
+    <div class="tile stats-card green text-center">
+      <div>
+        <div class="stat-value h4 mb-0"><%= vaccinated %></div>
+        <small class="text-muted">Vaccinés</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-4">
+  <h2 class="h4 mb-0 slide-in-left">Étudiants</h2>
+  <div class="d-flex flex-wrap gap-2">
+    <div class="input-group">
+      <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+      <input id="search-etudiants" type="text" class="form-control" placeholder="Rechercher (nom, matricule, classe...)" />
+    </div>
+    <button type="button" class="btn btn-outline-primary btn-modern" onclick="window.AppTables?.exportToCSV('table-etudiants','etudiants.csv')">
+      <i class="fas fa-file-export me-2"></i>Exporter CSV
+    </button>
+    <a href="/etudiants/add" class="btn btn-primary btn-modern slide-in-right hover-lift"><i class="fas fa-user-plus me-2"></i>Ajouter un étudiant</a>
+  </div>
+</div>
+
+<!-- Formulaire de filtrage -->
+<form method="GET" action="/etudiants" class="row g-3 mb-4 p-3 bg-light rounded">
+  <div class="col-md-4">
+    <label for="classe" class="form-label">Filtrer par classe</label>
+    <select name="classe" id="classe" class="form-select">
+      <option value="">Toutes les classes</option>
+      <% (classes || []).forEach(function(c){ %>
+        <option value="<%= c %>" <%= (filters && filters.classe === c) ? 'selected' : '' %>><%= c %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-4">
+    <label for="telephone_parent" class="form-label">Filtrer par téléphone parent</label>
+    <input type="text" name="telephone_parent" id="telephone_parent" class="form-control" placeholder="Numéro de téléphone" value="<%= (filters && filters.telephone_parent) || '' %>">
+  </div>
+  <div class="col-md-4 d-flex align-items-end">
+    <button type="submit" class="btn btn-primary me-2">
+      <i class="fas fa-filter me-1"></i>Filtrer
+    </button>
+    <a href="/etudiants" class="btn btn-outline-secondary">
+      <i class="fas fa-times me-1"></i>Effacer les filtres
+    </a>
+  </div>
+</form>
+
+<div class="card card-modern fade-in compact-body">
+  <div class="card-body">
+    <div class="table-responsive table-modern table-compact">
+      <table id="table-etudiants" class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Matricule</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Date Naissance</th>
+            <th>Lieu Naissance</th>
+            <th>Classe</th>
+            <th>Téléphone Parent</th>
+            <th>Vacciné</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (etudiants || []).forEach(function(e){ %>
+            <tr>
+              <td><span class="badge bg-light text-dark"><%= e.numero_matricule %></span></td>
+              <td><%= e.nom %></td>
+              <td><%= e.prenom %></td>
+              <td>
+                <% if (e.date_naissance) { %>
+                  <i class="fas fa-calendar me-1 text-muted"></i><%= new Date(e.date_naissance).toLocaleDateString('fr-FR') %>
+                <% } else { %>
+                  <span class="text-muted">-</span>
+                <% } %>
+              </td>
+              <td>
+                <% if (e.lieu_naissance) { %>
+                  <i class="fas fa-map-marker-alt me-1 text-muted"></i><%= e.lieu_naissance %>
+                <% } else { %>
+                  <span class="text-muted">-</span>
+                <% } %>
+              </td>
+              <td><%= e.classe %></td>
+              <td><i class="fas fa-phone me-1 text-muted"></i><%= e.telephone_parent %></td>
+              <td>
+                <% if (e.est_vaccine) { %>
+                  <span class="badge bg-success">Oui</span>
+                <% } else { %>
+                  <span class="badge bg-secondary">Non</span>
+                <% } %>
+              </td>
+              <td>
+                <div class="btn-group">
+                  <a href="/etudiants/edit/<%= e._id %>" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Modifier"><i class="fas fa-edit"></i></a>
+                  <a href="/etudiants/delete/<%= e._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer ?')" data-bs-toggle="tooltip" title="Supprimer"><i class="fas fa-trash"></i></a>
+                  <a href="/paiements" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Paiements"><i class="fas fa-receipt"></i></a>
+                  <a href="/notes" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="Notes"><i class="fas fa-clipboard-list"></i></a>
+                  <a href="/bulletin?matricule=<%= e.numero_matricule %>" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Bulletin"><i class="fas fa-file-pdf"></i></a>
+                  <a href="/certificat?matricule=<%= e.numero_matricule %>" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Certificat"><i class="fas fa-certificate"></i></a>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initialisation recherche/tri sur le tableau
+  (function(){
+    try {
+      window.AppTables?.initTable('table-etudiants', { searchable: true, sortable: true });
+    } catch (e) { console.warn('Init table', e); }
+
+    // Recherche en temps réel via l'input
+    const search = document.getElementById('search-etudiants');
+    const table = document.getElementById('table-etudiants');
+    if (search && table && window.AppTables) {
+      search.addEventListener('input', window.AppUtils?.debounce(function(){
+        window.AppTables.filterTableRows(table, search.value);
+      }, 300));
+    }
+  })();
+</script>
+
+<%- include('partials/footer') %>
+
+<script>
+// Écouter les changements d'année scolaire déclenchés par la transition
+window.addEventListener('storage', function(event) {
+  if (!event) return;
+  if (event.key === 'annee_scolaire_changed_at') {
+    console.info('Année scolaire modifiée dans un autre onglet — rechargement de la liste des étudiants');
+    // Recharger la page pour actualiser la liste des étudiants
+    location.reload();
+  }
+});
+</script>

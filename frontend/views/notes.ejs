@@ -1,0 +1,227 @@
+<%- include('partials/header', { title: 'Gestion des notes' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="h4 mb-0">Gestion des notes</h2>
+    <p class="text-muted mb-0">Suivi des performances académiques des étudiants</p>
+  </div>
+  <a href="/notes/add" class="btn btn-success btn-modern">
+    <i class="fas fa-plus me-2"></i>Ajouter des notes
+  </a>
+</div>
+
+<!-- Filtres et recherche -->
+<div class="card card-modern mb-4">
+  <div class="card-body">
+    <form method="get" action="/notes" class="row g-3">
+      <div class="col-md-6">
+        <input type="text" name="matricule" class="form-control" placeholder="Rechercher par numéro matricule" value="<%= (query && query.matricule) || '' %>">
+      </div>
+      <div class="col-md-3">
+        <select name="session" class="form-select">
+          <option value="">Toutes les sessions</option>
+          <option value="1er" <%= (query && query.session === '1er') ? 'selected' : '' %>>1er</option>
+          <option value="2ème" <%= (query && query.session === '2ème') ? 'selected' : '' %>>2ème</option>
+          <option value="3ème" <%= (query && query.session === '3ème') ? 'selected' : '' %>>3ème</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-primary w-100" type="submit">
+          <i class="fas fa-search me-2"></i>Rechercher
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Tableau des notes par étudiant -->
+<div class="card card-modern">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover table-bordered mb-0 notes-table">
+        <thead class="table-primary">
+          <tr>
+            <th style="min-width: 120px;">Matricule</th>
+            <th style="min-width: 120px;">Session</th>
+            <th style="min-width: 140px;">Type d'évaluation</th>
+            <% matieres.forEach(function(matiere) { %>
+              <th style="min-width: 80px; text-align: center;"><%= matiere %></th>
+            <% }) %>
+            <th style="min-width: 100px; text-align: center;">Moyenne</th>
+            <th style="min-width: 120px; text-align: center;">Appréciation</th>
+            <th style="min-width: 150px; text-align: center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if ((etudiantsNotes || []).length === 0) { %>
+            <tr>
+              <td colspan="<%= matieres.length + 6 %>" class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Aucune note trouvée</p>
+              </td>
+            </tr>
+          <% } else { %>
+            <% etudiantsNotes.forEach(function(etudiant){ %>
+              <tr>
+                <td>
+                  <strong><%= etudiant.numero_matricule %></strong>
+                </td>
+                <td class="text-center">
+                  <span class="badge bg-secondary"><%= etudiant.session %></span>
+                </td>
+                <td class="text-center">
+                  <% 
+                    const typeClass = etudiant.type_evaluation && etudiant.type_evaluation.startsWith('Exam') ? 'bg-warning' : 'bg-info';
+                  %>
+                  <span class="badge <%= typeClass %>"><%= etudiant.type_evaluation %></span>
+                </td>
+                <% matieres.forEach(function(matiere) { %>
+                  <td class="text-center">
+                    <% if (etudiant.notes[matiere]) { %>
+                      <span class="badge <%= etudiant.notes[matiere].note >= 16 ? 'bg-success' : etudiant.notes[matiere].note >= 12 ? 'bg-warning' : 'bg-danger' %> fs-6">
+                        <%= etudiant.notes[matiere].note %>/20
+                      </span>
+                    <% } else { %>
+                      <span class="text-muted">-</span>
+                    <% } %>
+                  </td>
+                <% }) %>
+                <td class="text-center">
+                  <span class="badge <%= getAppreciationClass(parseFloat(etudiant.moyenne)) %> fs-6">
+                    <%= etudiant.moyenne %>
+                  </span>
+                </td>
+                <td class="text-center">
+                  <span class="badge <%= getAppreciationClass(parseFloat(etudiant.moyenne)) %>">
+                    <%= etudiant.appreciation %>
+                  </span>
+                </td>
+                <td class="text-center">
+                  <div class="btn-group">
+                    <a href="/notes/edit-student/<%= etudiant.numero_matricule %>/<%= etudiant.session %>" class="btn btn-sm btn-warning" title="Modifier les notes">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="/notes/delete-student/<%= etudiant.numero_matricule %>/<%= etudiant.session %>" class="btn btn-sm btn-danger" title="Supprimer toutes les notes" onclick="return confirm('Supprimer toutes les notes de cet étudiant pour cette session ?')">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Amélioration du tableau des notes */
+.table th {
+  background: #0e33db !important;
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 15px 8px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.table td {
+  padding: 10px 8px;
+  vertical-align: middle;
+  border-color: #e9ecef;
+  text-align: center;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.badge {
+  font-size: 0.8em;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.btn-group .btn {
+  margin: 0 2px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* Style pour les colonnes de matières */
+.table td:nth-child(n+3):nth-last-child(n+3) {
+  min-width: 60px;
+  font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .table-responsive {
+    font-size: 0.8rem;
+  }
+  
+  .table th, .table td {
+    padding: 8px 4px;
+  }
+  
+  .badge {
+    font-size: 0.75em;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.75rem;
+  }
+  
+  .btn-group .btn {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.7rem;
+  }
+  
+  .table th, .table td {
+    padding: 6px 2px;
+  }
+}
+
+/* Animation pour les badges */
+.badge {
+  transition: all 0.3s ease;
+}
+
+.badge:hover {
+  transform: scale(1.05);
+}
+
+/* Style pour les notes vides */
+.text-muted {
+  font-size: 0.8em;
+}
+
+/* Amélioration de la lisibilité */
+.table td:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+
+.table td:nth-child(2) {
+  text-align: center;
+}
+</style>
+
+<%- include('partials/footer') %>
+
+<script>
+// Écouter les changements d'année scolaire déclenchés par la transition
+window.addEventListener('storage', function(event) {
+  if (!event) return;
+  if (event.key === 'annee_scolaire_changed_at') {
+    console.info('Année scolaire modifiée dans un autre onglet — rechargement des notes');
+    // Recharger la page pour actualiser la liste des notes
+    location.reload();
+  }
+});
+</script>

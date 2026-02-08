@@ -1,0 +1,216 @@
+<%- include('partials/header', { title: 'Détails de l\'enseignant' }) %>
+
+<!-- En-tête avec navigation -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1 text-gradient">Détails de l'enseignant</h1>
+    <p class="text-muted mb-0">Informations complètes de l'enseignant</p>
+  </div>
+  <div>
+    <a href="/enseignants" class="btn btn-outline-secondary btn-modern me-2">
+      <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+    </a>
+    <a href="/enseignants/edit/<%= enseignant._id %>" class="btn btn-primary btn-modern">
+      <i class="fas fa-edit me-2"></i>Modifier
+    </a>
+  </div>
+</div>
+
+<!-- Carte principale avec les informations -->
+<div class="row">
+  <div class="col-md-8">
+    <div class="card card-modern fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-user me-2"></i>Informations personnelles
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="info-item">
+              <label class="info-label">Nom complet</label>
+              <div class="info-value">
+                <i class="fas fa-user me-2"></i>
+                <%= enseignant.prenom %> <%= enseignant.nom %>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="info-item">
+              <label class="info-label">Matière enseignée</label>
+              <div class="info-value">
+                <span class="badge bg-info fs-6">
+                  <i class="fas fa-book me-1"></i><%= enseignant.matiere %>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="info-item">
+              <label class="info-label">Téléphone</label>
+              <div class="info-value">
+                <a href="tel:<%= enseignant.telephone %>" class="text-decoration-none">
+                  <i class="fas fa-phone me-2"></i><%= enseignant.telephone %>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="info-item">
+              <label class="info-label">Email</label>
+              <div class="info-value">
+                <% if (enseignant.email) { %>
+                  <a href="mailto:<%= enseignant.email %>" class="text-decoration-none">
+                    <i class="fas fa-envelope me-2"></i><%= enseignant.email %>
+                  </a>
+                <% } else { %>
+                  <span class="text-muted">
+                    <i class="fas fa-envelope me-2"></i>Non renseigné
+                  </span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="info-item">
+              <label class="info-label">Date d'embauche</label>
+              <div class="info-value">
+                <% if (enseignant.date_embauche) { %>
+                  <i class="fas fa-calendar me-2"></i>
+                  <%= new Date(enseignant.date_embauche).toLocaleDateString('fr-FR') %>
+                <% } else { %>
+                  <span class="text-muted">
+                    <i class="fas fa-calendar me-2"></i>Non renseignée
+                  </span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="info-item">
+              <label class="info-label">ID Enseignant</label>
+              <div class="info-value">
+                <code class="text-muted"><%= enseignant._id %></code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Carte latérale avec actions -->
+  <div class="col-md-4">
+    <div class="card card-modern fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-cogs me-2"></i>Actions
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <a href="/enseignants/edit/<%= enseignant._id %>" class="btn btn-primary btn-modern">
+            <i class="fas fa-edit me-2"></i>Modifier les informations
+          </a>
+          <a href="tel:<%= enseignant.telephone %>" class="btn btn-outline-success btn-modern">
+            <i class="fas fa-phone me-2"></i>Appeler
+          </a>
+          <% if (enseignant.email) { %>
+            <a href="mailto:<%= enseignant.email %>" class="btn btn-outline-info btn-modern">
+              <i class="fas fa-envelope me-2"></i>Envoyer un email
+            </a>
+          <% } %>
+          <hr>
+          <button class="btn btn-outline-danger btn-modern" onclick="deleteTeacher('<%= enseignant._id %>', '<%= enseignant.prenom %> <%= enseignant.nom %>')">
+            <i class="fas fa-trash me-2"></i>Supprimer l'enseignant
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Carte avec statistiques -->
+    <div class="card card-modern mt-3">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-bar me-2"></i>Statistiques
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <div class="col-6">
+            <div class="stat-item">
+              <div class="stat-number text-primary">1</div>
+              <div class="stat-label">Matière</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="stat-item">
+              <div class="stat-number text-success">
+                <% if (enseignant.date_embauche) { %>
+                  <%= Math.floor((new Date() - new Date(enseignant.date_embauche)) / (1000 * 60 * 60 * 24 * 365)) %>
+                <% } else { %>
+                  ?
+                <% } %>
+              </div>
+              <div class="stat-label">Années d'expérience</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Script pour la suppression -->
+<script>
+function deleteTeacher(id, name) {
+  if (confirm(`Êtes-vous sûr de vouloir supprimer l'enseignant "${name}" ?\n\nCette action est irréversible.`)) {
+    window.location.href = '/enseignants/delete/' + id;
+  }
+}
+</script>
+
+<style>
+.info-item {
+  margin-bottom: 1.5rem;
+}
+
+.info-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.info-value {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.stat-item {
+  padding: 1rem 0;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.5rem;
+}
+</style>
+
+<%- include('partials/footer') %>
+
+
+

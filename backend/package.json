@@ -1,0 +1,46 @@
+{
+  "name": "gestion-ecole",
+  "version": "1.0.0",
+  "description": "Application de gestion d'école",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --no-deprecation index.js",
+    "dev": "cd backend && npx nodemon index.js",
+    "dev:open": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Start-Job { Start-Sleep -Seconds 2; Start-Process 'http://localhost:8080' } | Out-Null; npx nodemon --exec 'node --no-deprecation' index.js\"",
+    "test": "jest",
+    "seed": "node --no-deprecation scripts/seed.js",
+    "reset": "node --no-deprecation scripts/reset.js",
+    "kill-port": "node --no-deprecation scripts/kill-port.js",
+    "dev:clean": "npm run kill-port && npm run dev:open"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "ejs": "^3.1.10",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.29.4",
+    "mongoose": "^8.18.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.6.0",
+    "puppeteer": "^24.22.3",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "école",
+    "gestion",
+    "étudiants",
+    "nodejs"
+  ],
+  "author": "Votre nom",
+  "license": "MIT"
+}

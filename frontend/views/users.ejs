@@ -1,0 +1,43 @@
+<%- include('partials/header', { title: title || 'Gestion des comptes' }) %>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Comptes utilisateurs</h3>
+    <a href="/admin/users/create" class="btn btn-primary">Créer un compte</a>
+  </div>
+
+  <% if (errorMessage && errorMessage.length) { %>
+    <div class="alert alert-danger"><%= errorMessage %></div>
+  <% } %>
+  <% if (successMessage && successMessage.length) { %>
+    <div class="alert alert-success"><%= successMessage %></div>
+  <% } %>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nom d'utilisateur</th>
+        <th>Rôle</th>
+        <th>Créé le</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% (users || []).forEach(function(u){ %>
+        <tr>
+          <td><%= u.username %></td>
+          <td><%= u.role %></td>
+          <td><%= new Date(u.createdAt).toLocaleString('fr-FR') %></td>
+          <td>
+            <a href="/admin/users/<%= u._id %>/edit" class="btn btn-sm btn-warning me-1">Modifier</a>
+            <form action="/admin/users/<%= u._id %>/delete" method="post" style="display:inline;" onsubmit="return confirm('Supprimer ce compte ?');">
+              <button class="btn btn-sm btn-danger">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/footer') %>
