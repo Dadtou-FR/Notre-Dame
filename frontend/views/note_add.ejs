@@ -1,4 +1,4 @@
-<%- include('partials/header', { title: 'Ajouter des notes' }) %>
+<%- include('partials/header', { title: title }) %>
 
 <style>
   .notes-container {
@@ -147,30 +147,30 @@
     <div class="col-md-4">
       <label class="form-label fw-bold">Numéro matricule *</label>
       <div class="autocomplete-container">
-        <input type="text" name="numero_matricule" id="numero_matricule" class="form-control form-control-lg autocomplete-input" 
-               placeholder="Ex: 2024001" required autocomplete="off">
+        <input type="text" name="numero_matricule" id="numero_matricule" class="form-control form-control-lg autocomplete-input"
+               placeholder="Ex: 2024001" value="<%= prefilledData && prefilledData.numero_matricule ? prefilledData.numero_matricule : '' %>" required autocomplete="off">
         <ul class="autocomplete-list" id="autocomplete-list"></ul>
       </div>
       <small class="form-text text-muted">Identifiant unique de l'élève</small>
     </div>
-    
+
     <div class="col-md-4">
       <label class="form-label fw-bold">Trimestre *</label>
       <select name="session" class="form-select form-select-lg" required>
         <option value="">-- Sélectionner --</option>
-        <option value="1er">1er</option>
-        <option value="2ème">2ème</option>
-        <option value="3ème">3ème</option>
+        <option value="1er" <%= prefilledData && prefilledData.session === '1er' ? 'selected' : '' %>>1er</option>
+        <option value="2ème" <%= prefilledData && prefilledData.session === '2ème' ? 'selected' : '' %>>2ème</option>
+        <option value="3ème" <%= prefilledData && prefilledData.session === '3ème' ? 'selected' : '' %>>3ème</option>
       </select>
       <small class="form-text text-muted">Période d'évaluation</small>
     </div>
-    
+
     <div class="col-md-4">
       <label class="form-label fw-bold">Type d'évaluation *</label>
       <select name="type_evaluation" id="type_evaluation" class="form-select form-select-lg" required>
         <option value="">-- Sélectionner --</option>
-        <option value="Controle Continu">Controle Continu</option>
-        <option value="Examen">Examen</option>
+        <option value="Controle Continu" <%= prefilledData && prefilledData.type_evaluation === 'Controle Continu' ? 'selected' : '' %>>Controle Continu</option>
+        <option value="Examen" <%= prefilledData && prefilledData.type_evaluation === 'Examen' ? 'selected' : '' %>>Examen</option>
       </select>
       <small class="form-text text-muted">Contrôle ou Examen</small>
     </div>
@@ -194,133 +194,133 @@
             <tr class="matiere-row">
               <td><strong>Catéchèse</strong></td>
               <td>
-                <input type="number" name="notes[Catéchèse][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_catechese" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Catéchèse'] ? prefilledData.notes['Catéchèse'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[Catéchèse][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Ex: Bon progrès">
+                <input type="text" name="commentaire_catechese" class="form-control form-control-sm"
+                       placeholder="Ex: Bon progrès" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Catéchèse'] ? prefilledData.notes['Catéchèse'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>Philosophie / Initiation</strong></td>
               <td>
-                <input type="number" name="notes[Philosophie / Initiation][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_philosophie_initiation" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Philosophie / Initiation'] ? prefilledData.notes['Philosophie / Initiation'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[Philosophie / Initiation][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_philosophie_initiation" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Philosophie / Initiation'] ? prefilledData.notes['Philosophie / Initiation'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>Malagasy</strong></td>
               <td>
-                <input type="number" name="notes[Malagasy][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_malagasy" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Malagasy'] ? prefilledData.notes['Malagasy'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[Malagasy][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_malagasy" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Malagasy'] ? prefilledData.notes['Malagasy'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>Français</strong></td>
               <td>
-                <input type="number" name="notes[Français][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_francais" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Français'] ? prefilledData.notes['Français'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[Français][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_francais" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Français'] ? prefilledData.notes['Français'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>Anglais</strong></td>
               <td>
-                <input type="number" name="notes[Anglais][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_anglais" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Anglais'] ? prefilledData.notes['Anglais'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[Anglais][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_anglais" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Anglais'] ? prefilledData.notes['Anglais'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>Espagnol</strong></td>
               <td>
-                <input type="number" name="notes[Espagnol][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_espagnol" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Espagnol'] ? prefilledData.notes['Espagnol'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[Espagnol][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_espagnol" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Espagnol'] ? prefilledData.notes['Espagnol'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>Histoire - Géographie</strong></td>
               <td>
-                <input type="number" name="notes[Histoire - Géographie][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_histoire_geographie" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Histoire - Géographie'] ? prefilledData.notes['Histoire - Géographie'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[Histoire - Géographie][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_histoire_geographie" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Histoire - Géographie'] ? prefilledData.notes['Histoire - Géographie'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>Mathématiques</strong></td>
               <td>
-                <input type="number" name="notes[Mathématiques][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_mathematiques" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Mathématiques'] ? prefilledData.notes['Mathématiques'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[Mathématiques][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_mathematiques" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Mathématiques'] ? prefilledData.notes['Mathématiques'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>Physique - Chimie</strong></td>
               <td>
-                <input type="number" name="notes[Physique - Chimie][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_physique_chimie" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Physique - Chimie'] ? prefilledData.notes['Physique - Chimie'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[Physique - Chimie][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_physique_chimie" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Physique - Chimie'] ? prefilledData.notes['Physique - Chimie'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>SVT (Sciences de la Vie et de la Terre)</strong></td>
               <td>
-                <input type="number" name="notes[SVT][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_svt" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['SVT'] ? prefilledData.notes['SVT'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[SVT][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_svt" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['SVT'] ? prefilledData.notes['SVT'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>Informatique</strong></td>
               <td>
-                <input type="number" name="notes[Informatique][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_informatique" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Informatique'] ? prefilledData.notes['Informatique'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[Informatique][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_informatique" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['Informatique'] ? prefilledData.notes['Informatique'].commentaire : '' %>">
               </td>
             </tr>
             <tr class="matiere-row">
               <td><strong>EPS (Éducation Physique et Sportive)</strong></td>
               <td>
-                <input type="number" name="notes[EPS][note]" class="form-control form-control-sm note-input" 
-                       min="0" max="20" step="0.5" placeholder="0-20">
+                <input type="number" name="note_eps" class="form-control form-control-sm note-input"
+                       min="0" max="20" step="0.5" placeholder="0-20" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['EPS'] ? prefilledData.notes['EPS'].note : '' %>">
               </td>
               <td>
-                <input type="text" name="notes[EPS][commentaire]" class="form-control form-control-sm" 
-                       placeholder="Optionnel">
+                <input type="text" name="commentaire_eps" class="form-control form-control-sm"
+                       placeholder="Optionnel" value="<%= prefilledData && prefilledData.notes && prefilledData.notes['EPS'] ? prefilledData.notes['EPS'].commentaire : '' %>">
               </td>
             </tr>
           </tbody>

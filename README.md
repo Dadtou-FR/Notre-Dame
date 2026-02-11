@@ -138,7 +138,7 @@ npm run dev
 npm start
 ```
 
-L'application sera accessible à l'adresse : `http://localhost:3000`
+L'application sera accessible à l'adresse : `http://localhost:5000`
 
 ## ⚙️ Configuration
 
@@ -293,9 +293,6 @@ Content-Type: application/json
 - Alertes et notifications importantes
 - Actions rapides
 
-### Gestion des étudiants
-1. Cliquer sur "Étudiants" dans le menu
-2. Utiliser les filtres pour rechercher
 ### Gestion des étudiants
 1. Cliquer sur "Étudiants" dans le menu
 2. Utiliser les filtres pour rechercher

@@ -1,0 +1,198 @@
+<%- include('partials/header', { title: 'Modifier le paiement' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h4 mb-0">Modifier un paiement</h2>
+  <a href="/paiements" class="btn btn-outline-secondary btn-modern">
+    <i class="fas fa-arrow-left me-2"></i>Retour aux paiements
+  </a>
+</div>
+
+<div class="row">
+  <!-- Informations du paiement -->
+  <div class="col-md-4">
+    <div class="card card-modern mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-info-circle me-2"></i>Informations du paiement
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Étudiant</label>
+          <p class="mb-1"><%= etudiant.prenom %> <%= etudiant.nom %></p>
+          <small class="text-muted">Matricule: <%= etudiant.numero_matricule %></small>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Classe</label>
+          <p><%= etudiant.classe %></p>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Type de paiement</label>
+          <p><%= paiement.type_paiement %></p>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Période</label>
+          <p><%= paiement.mois %> <%= paiement.annee %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulaire de modification -->
+  <div class="col-md-8">
+    <div class="card card-modern">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-edit me-2"></i>Modifier les informations
+        </h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="/paiements/<%= paiement._id %>/edit" class="needs-validation" novalidate>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="montant" class="form-label">Montant (Ar)</label>
+              <input type="number" class="form-control" id="montant" name="montant"
+                     value="<%= paiement.montant %>" step="100" min="0" required>
+              <div class="invalid-feedback">
+                Veuillez saisir un montant valide.
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="date_paiement" class="form-label">Date de paiement</label>
+              <input type="date" class="form-control" id="date_paiement" name="date_paiement"
+                     value="<%= paiement.date_paiement ? new Date(paiement.date_paiement).toISOString().split('T')[0] : '' %>" required>
+              <div class="invalid-feedback">
+                Veuillez sélectionner une date.
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="methode_paiement" class="form-label">Méthode de paiement</label>
+              <select class="form-select" id="methode_paiement" name="methode_paiement" required>
+                <option value="Espèces" <%= paiement.methode_paiement === 'Espèces' ? 'selected' : '' %>>Espèces</option>
+                <option value="Chèque" <%= paiement.methode_paiement === 'Chèque' ? 'selected' : '' %>>Chèque</option>
+                <option value="Virement" <%= paiement.methode_paiement === 'Virement' ? 'selected' : '' %>>Virement</option>
+                <option value="Mobile Money" <%= paiement.methode_paiement === 'Mobile Money' ? 'selected' : '' %>>Mobile Money</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="statut" class="form-label">Statut</label>
+              <select class="form-select" id="statut" name="statut" required>
+                <option value="Payé" <%= paiement.statut === 'Payé' ? 'selected' : '' %>>Payé</option>
+                <option value="En retard" <%= paiement.statut === 'En retard' ? 'selected' : '' %>>En retard</option>
+                <option value="Non payé" <%= paiement.statut === 'Non payé' ? 'selected' : '' %>>Non payé</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label for="remarques" class="form-label">Remarques</label>
+              <textarea class="form-control" id="remarques" name="remarques" rows="3"
+                        placeholder="Remarques supplémentaires..."><%= paiement.remarques || '' %></textarea>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-4">
+            <a href="/paiements/etudiant/<%= etudiant.numero_matricule %>" class="btn btn-outline-info">
+              <i class="fas fa-eye me-2"></i>Voir tous les paiements
+            </a>
+
+            <div>
+              <button type="button" class="btn btn-outline-secondary me-2" onclick="history.back()">
+                <i class="fas fa-times me-2"></i>Annuler
+              </button>
+              <button type="submit" class="btn btn-primary btn-modern">
+                <i class="fas fa-save me-2"></i>Enregistrer les modifications
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Historique des modifications (si disponible) -->
+<div class="card card-modern mt-4">
+  <div class="card-header">
+    <h5 class="mb-0">
+      <i class="fas fa-history me-2"></i>Historique du paiement
+    </h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Créé le</label>
+          <p><%= new Date(paiement.createdAt || paiement.date_paiement).toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) %></p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Dernière modification</label>
+          <p><%= new Date(paiement.updatedAt || paiement.createdAt || paiement.date_paiement).toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<script>
+// Validation du formulaire
+(function () {
+  'use strict'
+
+  var forms = document.querySelectorAll('.needs-validation')
+
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+
+        form.classList.add('was-validated')
+      }, false)
+    })
+})()
+
+// Confirmation avant soumission
+document.querySelector('form').addEventListener('submit', function(e) {
+  const montant = document.getElementById('montant').value;
+  const date = document.getElementById('date_paiement').value;
+
+  if (!montant || montant <= 0) {
+    e.preventDefault();
+    alert('Veuillez saisir un montant valide.');
+    return;
+  }
+
+  if (!date) {
+    e.preventDefault();
+    alert('Veuillez sélectionner une date de paiement.');
+    return;
+  }
+
+  if (!confirm('Confirmer les modifications du paiement ?')) {
+    e.preventDefault();
+  }
+});
+</script>

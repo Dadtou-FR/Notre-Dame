@@ -15,14 +15,14 @@
   <div class="card-body">
     <form method="get" action="/notes" class="row g-3">
       <div class="col-md-6">
-        <input type="text" name="matricule" class="form-control" placeholder="Rechercher par numéro matricule" value="<%= (query && query.matricule) || '' %>">
+        <input type="text" name="matricule" class="form-control" placeholder="Rechercher par numéro matricule" value="<%= (filters && filters.matricule) || '' %>">
       </div>
       <div class="col-md-3">
         <select name="session" class="form-select">
           <option value="">Toutes les sessions</option>
-          <option value="1er" <%= (query && query.session === '1er') ? 'selected' : '' %>>1er</option>
-          <option value="2ème" <%= (query && query.session === '2ème') ? 'selected' : '' %>>2ème</option>
-          <option value="3ème" <%= (query && query.session === '3ème') ? 'selected' : '' %>>3ème</option>
+          <option value="1er" <%= (filters && filters.session === '1er') ? 'selected' : '' %>>1er</option>
+          <option value="2ème" <%= (filters && filters.session === '2ème') ? 'selected' : '' %>>2ème</option>
+          <option value="3ème" <%= (filters && filters.session === '3ème') ? 'selected' : '' %>>3ème</option>
         </select>
       </div>
       <div class="col-md-3">
@@ -98,7 +98,7 @@
                 </td>
                 <td class="text-center">
                   <div class="btn-group">
-                    <a href="/notes/edit-student/<%= etudiant.numero_matricule %>/<%= etudiant.session %>" class="btn btn-sm btn-warning" title="Modifier les notes">
+                    <a href="/notes/add?matricule=<%= etudiant.numero_matricule %>&session=<%= etudiant.session %>" class="btn btn-sm btn-warning" title="Modifier les notes">
                       <i class="fas fa-edit"></i>
                     </a>
                     <a href="/notes/delete-student/<%= etudiant.numero_matricule %>/<%= etudiant.session %>" class="btn btn-sm btn-danger" title="Supprimer toutes les notes" onclick="return confirm('Supprimer toutes les notes de cet étudiant pour cette session ?')">

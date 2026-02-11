@@ -131,22 +131,24 @@ PaiementSchema.statics.getPaiementsParEtudiant = async function(annee = new Date
         paye: !!paiement,
         montant: paiement ? paiement.montant : 0,
         datePaiement: paiement ? new Date(paiement.date_paiement).toLocaleDateString('fr-FR') : null,
-        enRetard: false // Désactivé pour permettre l'ajout manuel des paiements
+        enRetard: false, // Désactivé pour permettre l'ajout manuel des paiements
+        id: paiement ? paiement._id : null
       };
     });
     
     // Droit d'inscription
     const droitInscription = paiements.find(p => p.mois === 'Droit' && p.type_paiement === 'Droit');
-    
+
     // Calcul du total
     const totalPaye = paiements.reduce((sum, p) => sum + p.montant, 0);
-    
+
     resultats.push({
       etudiant,
       droitInscription: {
         paye: !!droitInscription,
         montant: droitInscription ? droitInscription.montant : 0,
-        datePaiement: droitInscription ? new Date(droitInscription.date_paiement).toLocaleDateString('fr-FR') : null
+        datePaiement: droitInscription ? new Date(droitInscription.date_paiement).toLocaleDateString('fr-FR') : null,
+        id: droitInscription ? droitInscription._id : null
       },
       paiementsMensuels,
       totalPaye

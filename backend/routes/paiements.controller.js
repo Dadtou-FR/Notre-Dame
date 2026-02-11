@@ -166,22 +166,62 @@ exports.getPaiementsEtudiant = async (req, res) => {
   }
 };
 
+// Afficher le formulaire de modification d'un paiement
+exports.showEditForm = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const paiement = await Paiement.findById(id);
+
+    if (!paiement) {
+      req.flash('error', 'Paiement non trouvé');
+      return res.redirect('/paiements');
+    }
+
+    // Récupérer les informations de l'étudiant
+    const etudiant = await Etudiant.findOne({ numero_matricule: paiement.numero_matricule });
+
+    res.render('paiement_edit', {
+      paiement,
+      etudiant,
+      title: 'Modifier le paiement'
+    });
+
+  } catch (error) {
+    console.error('Erreur affichage formulaire modification:', error);
+    req.flash('error', 'Erreur lors de l\'affichage du formulaire');
+    res.redirect('/paiements');
+  }
+};
+
 // Modifier un paiement
 exports.updatePaiement = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { montant, date_paiement, methode_paiement, remarques } = req.body;
-    
-    await Paiement.findByIdAndUpdate(id, {
+    const { numero_matricule, mois, annee, montant, date_paiement, methode_paiement, remarques, statut } = req.body;
+
+    // Trouver le paiement par matricule, mois et année
+    const paiement = await Paiement.findOne({
+      numero_matricule,
+      mois,
+      annee
+    });
+
+    if (!paiement) {
+      req.flash('error', 'Paiement non trouvé');
+      return res.redirect('/paiements');
+    }
+
+    // Mettre à jour le paiement
+    await Paiement.findByIdAndUpdate(paiement._id, {
       montant: parseFloat(montant),
       date_paiement,
       methode_paiement,
-      remarques
+      remarques,
+      statut: statut || 'Payé'
     }, { new: true, runValidators: true });
-    
+
     req.flash('success', 'Paiement modifié avec succès');
     res.redirect('/paiements');
-    
+
   } catch (error) {
     console.error('Erreur modification paiement:', error);
     req.flash('error', 'Erreur lors de la modification');
@@ -448,19 +488,19 @@ exports.searchEtudiants = async (req, res) => {
 exports.getStatistiques = async (req, res) => {
   try {
     const annee = parseInt(req.query.annee) || new Date().getFullYear();
-    
+
     const totalPaiements = await Paiement.countDocuments({ annee });
     const totalMontant = await Paiement.aggregate([
       { $match: { annee } },
       { $group: { _id: null, total: { $sum: '$montant' } } }
     ]);
-    
+
     const paiementsParMois = await Paiement.aggregate([
       { $match: { annee } },
       { $group: { _id: '$mois', total: { $sum: '$montant' }, count: { $sum: 1 } } },
       { $sort: { total: -1 } }
     ]);
-    
+
     res.json({
       success: true,
       statistiques: {
@@ -469,10 +509,29 @@ exports.getStatistiques = async (req, res) => {
         paiementsParMois
       }
     });
-    
+
   } catch (error) {
     console.error('Erreur statistiques:', error);
     res.json({ success: false, message: 'Erreur lors du calcul des statistiques' });
+  }
+};
+
+// Récupérer un paiement spécifique
+exports.getPayment = async (req, res) => {
+  try {
+    const { matricule, mois, annee } = req.query;
+    const paiement = await Paiement.findOne({
+      numero_matricule: matricule,
+      mois,
+      annee: parseInt(annee)
+    });
+    if (!paiement) {
+      return res.json({ success: false, message: 'Paiement non trouvé' });
+    }
+    res.json({ success: true, paiement });
+  } catch (error) {
+    console.error('Erreur get payment:', error);
+    res.json({ success: false, message: 'Erreur' });
   }
 };
 

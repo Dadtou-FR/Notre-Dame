@@ -24,7 +24,49 @@ exports.getAll = async (req, res) => {
     const matieres = await Note.distinct('matiere').sort();
     const sessions = await Note.distinct('session').sort();
 
-    res.render("notes", { notes, matieres, sessions, filters: { matricule, matiere, session } });
+    // Grouper les notes par étudiant et session
+    const groupedNotes = notes.reduce((acc, note) => {
+      const key = `${note.numero_matricule}-${note.session}`;
+      if (!acc[key]) {
+        acc[key] = {
+          numero_matricule: note.numero_matricule,
+          session: note.session,
+          type_evaluation: note.type_evaluation, // Prendre le premier type d'évaluation
+          notes: {},
+          total: 0,
+          count: 0
+        };
+      }
+      acc[key].notes[note.matiere] = { note: note.note };
+      acc[key].total += note.note;
+      acc[key].count += 1;
+      return acc;
+    }, {});
+
+    const etudiantsNotes = Object.values(groupedNotes).map(etudiant => {
+      etudiant.moyenne = etudiant.count > 0 ? (etudiant.total / etudiant.count).toFixed(2) : '0.00';
+      const moy = parseFloat(etudiant.moyenne);
+      if (moy >= 16) {
+        etudiant.appreciation = 'Excellent';
+      } else if (moy >= 14) {
+        etudiant.appreciation = 'Très bien';
+      } else if (moy >= 12) {
+        etudiant.appreciation = 'Bien';
+      } else if (moy >= 10) {
+        etudiant.appreciation = 'Passable';
+      } else {
+        etudiant.appreciation = 'Insuffisant';
+      }
+      return etudiant;
+    });
+
+    const getAppreciationClass = function(moy) {
+      if (moy >= 16) return 'bg-success';
+      else if (moy >= 12) return 'bg-warning';
+      else return 'bg-danger';
+    };
+
+    res.render("notes", { etudiantsNotes, matieres, sessions, filters: { matricule, matiere, session }, getAppreciationClass });
   } catch (error) {
     console.error('Erreur lors de la récupération des notes:', error);
     res.status(500).render('error', {
@@ -34,41 +76,124 @@ exports.getAll = async (req, res) => {
   }
 };
 
-exports.showAddForm = (req, res) => {
-  res.render("note_add");
+exports.showAddForm = async (req, res) => {
+  try {
+    const { matricule, session } = req.query;
+
+    let prefilledData = null;
+
+    if (matricule && session) {
+      // Récupérer les notes existantes pour pré-remplir le formulaire
+      const notes = await Note.find({ numero_matricule: matricule, session }).sort({ matiere: 1 });
+
+      // Transformer les notes en objet par matière
+      const notesByMatiere = notes.reduce((acc, note) => {
+        acc[note.matiere] = note;
+        return acc;
+      }, {});
+
+      // Récupérer l'étudiant
+      const etudiant = await Etudiant.findOne({ numero_matricule: matricule });
+
+      // Déterminer le type d'évaluation (premier trouvé ou défaut)
+      const type_evaluation = notes.length > 0 ? notes[0].type_evaluation : '';
+
+      prefilledData = {
+        numero_matricule: matricule,
+        session: session,
+        type_evaluation: type_evaluation,
+        notes: notesByMatiere,
+        etudiant: etudiant
+      };
+    }
+
+    const title = prefilledData && prefilledData.numero_matricule ? `Modifier les notes - ${prefilledData.numero_matricule}` : 'Ajouter des notes';
+
+    res.render("note_add", { title, prefilledData });
+  } catch (error) {
+    console.error('Erreur lors de l\'affichage du formulaire d\'ajout:', error);
+    res.status(500).render('error', {
+      message: 'Erreur lors de l\'affichage du formulaire',
+      title: 'Erreur'
+    });
+  }
 };
 
 exports.addBatch = async (req, res) => {
   try {
-    const { notes } = req.body;
+    const { numero_matricule, session, type_evaluation } = req.body;
 
-    if (!notes || !Array.isArray(notes)) {
+    // Vérifier que l'étudiant existe
+    const etudiant = await Etudiant.findOne({ numero_matricule });
+    if (!etudiant) {
       return res.status(400).render('error', {
-        message: 'Données de notes invalides',
+        message: 'Étudiant non trouvé. Veuillez sélectionner un étudiant valide.',
         title: 'Erreur'
       });
     }
 
+    // Mapping from form keys to actual matiere names
+    const matiereMapping = {
+      'catechese': 'Catéchèse',
+      'philosophie_initiation': 'Philosophie / Initiation',
+      'malagasy': 'Malagasy',
+      'francais': 'Français',
+      'anglais': 'Anglais',
+      'espagnol': 'Espagnol',
+      'histoire_geographie': 'Histoire - Géographie',
+      'mathematiques': 'Mathématiques',
+      'physique_chimie': 'Physique - Chimie',
+      'svt': 'SVT (Sciences de la Vie et de la Terre)',
+      'informatique': 'Informatique',
+      'eps': 'EPS (Éducation Physique et Sportive)'
+    };
+
+    // Build notes object from form data
+    const notes = {};
+    for (const [key, matiere] of Object.entries(matiereMapping)) {
+      const noteKey = `note_${key}`;
+      const commentaireKey = `commentaire_${key}`;
+      const noteValue = req.body[noteKey];
+      if (noteValue !== undefined && noteValue !== '' && noteValue !== null) {
+        const parsedNote = parseFloat(noteValue);
+        if (!isNaN(parsedNote) && parsedNote >= 0 && parsedNote <= 20) {
+          notes[matiere] = {
+            note: parsedNote,
+            commentaire: req.body[commentaireKey] || null
+          };
+        }
+      }
+    }
+
+    // Transform to array
+    const notesArray = Object.entries(notes).map(([matiere, data]) => ({
+      numero_matricule,
+      matiere,
+      note: data.note,
+      session,
+      type_evaluation,
+      commentaire: data.commentaire
+    }));
+
+    if (notesArray.length === 0) {
+      return res.status(400).render('error', {
+        message: 'Aucune note valide à enregistrer. Veuillez saisir au moins une note entre 0 et 20.',
+        title: 'Erreur'
+      });
+    }
+
+    // For editing, delete existing notes for this student and session
+    await Note.deleteMany({ numero_matricule, session });
+
     // Validation et création des notes
     const notesToCreate = [];
-    for (const noteData of notes) {
+    for (const noteData of notesArray) {
       const { numero_matricule, matiere, note, session, type_evaluation, commentaire } = noteData;
-
-      // Validation de base
-      if (!numero_matricule || !matiere || note === undefined || !session || !type_evaluation) {
-        continue; // Skip invalid entries
-      }
-
-      // Vérifier que l'étudiant existe
-      const etudiant = await Etudiant.findOne({ numero_matricule });
-      if (!etudiant) {
-        continue; // Skip if student doesn't exist
-      }
 
       notesToCreate.push({
         numero_matricule,
         matiere,
-        note: parseFloat(note),
+        note: note,
         session,
         type_evaluation,
         commentaire: commentaire || null,
@@ -162,7 +287,21 @@ exports.showEditStudentForm = async (req, res) => {
     // Récupérer les notes de l'étudiant pour cette session
     const notes = await Note.find({ numero_matricule: matricule, session }).sort({ matiere: 1 });
 
-    res.render("note_edit_student", { etudiant, notes, session });
+    // Transformer les notes en objet par matière
+    const notesByMatiere = notes.reduce((acc, note) => {
+      acc[note.matiere] = note;
+      return acc;
+    }, {});
+
+    // Récupérer les matières uniques
+    const matieres = [...new Set(notes.map(note => note.matiere))].sort();
+
+    // Déterminer le type d'évaluation sélectionné (premier trouvé ou défaut)
+    const selectedType = notes.length > 0 ? notes[0].type_evaluation : '';
+
+    const title = `Modifier les notes - ${matricule}`;
+
+    res.render("note_edit_student", { etudiant, notes, session, matricule, notesByMatiere, matieres, selectedType, title });
   } catch (error) {
     console.error('Erreur lors de l\'affichage des notes de l\'étudiant:', error);
     res.status(500).render('error', {

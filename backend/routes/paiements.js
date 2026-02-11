@@ -24,6 +24,9 @@ router.get('/search-etudiants', requirePaymentAuth, paiementsController.searchEt
 // Statistiques
 router.get('/statistiques', requirePaymentAuth, paiementsController.getStatistiques);
 
+// Récupérer un paiement spécifique
+router.get('/payment', requirePaymentAuth, paiementsController.getPayment);
+
 // Paiements journaliers
 router.get('/daily/:date', requirePaymentAuth, paiementsController.getDailyPaiements);
 router.get('/daily/:date/pdf', requirePaymentAuth, paiementsController.genererDailyPDF);
@@ -35,6 +38,7 @@ router.get('/etudiant/:matricule', requirePaymentAuth, paiementsController.getPa
 router.get('/recu/:matricule', requirePaymentAuth, paiementsController.genererRecu);
 
 // Modifier un paiement
+router.get('/:id/edit', requirePaymentAuth, paiementsController.showEditForm);
 router.post('/:id/edit', requirePaymentAuth, paiementsController.updatePaiement);
 
 // Supprimer un paiement

@@ -78,6 +78,7 @@ const paiementRoutes = require('./routes/paiements');
 const noteRoutes = require('./routes/notes');
 const anneeRoutes = require('./routes/annees');
 const transitionRoutes = require('./routes/transitions');
+const aboutRoutes = require('./routes/about');
 
 // Import des modèles
 const Etudiant = require('./models/etudiants');
@@ -87,7 +88,7 @@ const Document = require('./models/documents');
 const Note = require('./models/notes');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 
 // Créer le serveur HTTP et Socket.IO
 const httpServer = createServer(app);
@@ -806,6 +807,7 @@ app.use('/paiements', paiementRoutes);
 app.use('/notes', noteRoutes);
 app.use('/annees-scolaires', anneeRoutes);
 app.use('/transitions', transitionRoutes);
+app.use('/about', aboutRoutes);
 // Admin users management
 const usersRoutes = require('./routes/users');
 app.use('/admin/users', usersRoutes);
