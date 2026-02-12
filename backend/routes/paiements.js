@@ -39,7 +39,7 @@ router.get('/recu/:matricule', requirePaymentAuth, paiementsController.genererRe
 
 // Modifier un paiement
 router.get('/:id/edit', requirePaymentAuth, paiementsController.showEditForm);
-router.post('/:id/edit', requirePaymentAuth, paiementsController.updatePaiement);
+router.post('/update', requirePaymentAuth, paiementsController.updatePaiement);
 
 // Supprimer un paiement
 router.post('/:id/delete', requirePaymentAuth, paiementsController.deletePaiement);

@@ -177,22 +177,30 @@
                 </td>
                 
                 <!-- Droit d'inscription -->
-                <td class="text-center" style="<%= item.droitInscription.paye ? 'background: #d4edda;' : 'background: #f8d7da;' %>">
+                <td class="text-center <%= item.droitInscription.paye ? 'cell-paid' : 'cell-unpaid' %>">
                   <% if (item.droitInscription.paye) { %>
                     <div class="d-flex justify-content-center align-items-center">
                       <span class="badge bg-success me-1" title="Payé le <%= item.droitInscription.datePaiement %>">
                         <%= item.droitInscription.montant.toLocaleString() %> Ar
                       </span>
-                      <button class="btn btn-sm btn-outline-primary"
-                              onclick="modifierPaiement('<%= item.etudiant.numero_matricule %>', 'Droit', <%= new Date().getFullYear() %>, <%= item.droitInscription.montant %>, '<%= item.droitInscription.datePaiement %>', '<%= item.droitInscription.methode_paiement || 'Espèces' %>')"
+                      <button class="btn btn-sm btn-outline-primary js-modifier-paiement"
+                              type="button"
+                              data-matricule="<%= item.etudiant.numero_matricule %>"
+                              data-mois="Droit"
+                              data-annee="<%= new Date().getFullYear() %>"
+                              data-montant="<%= item.droitInscription.montant %>"
+                              data-date="<%= item.droitInscription.datePaiement %>"
+                              data-methode="<%= item.droitInscription.methode_paiement || 'Espèces' %>"
                               title="Modifier">
                         <i class="fas fa-edit"></i>
                       </button>
                     </div>
                   <% } else { %>
-                    <button class="btn btn-sm btn-outline-danger"
-                            onclick="ajouterPaiement('<%= item.etudiant.numero_matricule %>', 'Droit', <%= new Date().getFullYear() %>)"
-                            data-year="<%= new Date().getFullYear() %>">
+                    <button class="btn btn-sm btn-outline-danger js-ajouter-paiement"
+                            type="button"
+                            data-matricule="<%= item.etudiant.numero_matricule %>"
+                            data-mois="Droit"
+                            data-annee="<%= new Date().getFullYear() %>">
                       <i class="fas fa-plus"></i>
                     </button>
                   <% } %>
@@ -203,19 +211,25 @@
                   moisList.forEach(function(mois) {
                     const paiementMois = item.paiementsMensuels[mois] || { paye: false, enRetard: false };
                   %>
-                    <td class="text-center" style="<%= paiementMois.paye ? 'background: #d4edda;' : '' %>">
+                    <td class="text-center <%= paiementMois.paye ? 'cell-paid' : '' %>">
                       <% if (paiementMois.paye) { %>
                         <div class="d-flex justify-content-center align-items-center">
                           <span class="badge bg-success me-1" title="Payé le <%= paiementMois.datePaiement || '' %>">P</span>
-                          <button class="btn btn-sm btn-outline-primary"
-                                  onclick="modifierPaiement('<%= item.etudiant.numero_matricule %>', '<%= mois %>', <%= new Date().getFullYear() %>)"
+                          <button class="btn btn-sm btn-outline-primary js-modifier-paiement"
+                                  type="button"
+                                  data-matricule="<%= item.etudiant.numero_matricule %>"
+                                  data-mois="<%= mois %>"
+                                  data-annee="<%= new Date().getFullYear() %>"
                                   title="Modifier">
                             <i class="fas fa-edit"></i>
                           </button>
                         </div>
                       <% } else { %>
-                        <button class="btn btn-sm btn-outline-secondary btn-add-payment"
-                                onclick="ajouterPaiement('<%= item.etudiant.numero_matricule %>', '<%= mois %>', <%= new Date().getFullYear() %>)">
+                        <button class="btn btn-sm btn-outline-secondary btn-add-payment js-ajouter-paiement"
+                                type="button"
+                                data-matricule="<%= item.etudiant.numero_matricule %>"
+                                data-mois="<%= mois %>"
+                                data-annee="<%= new Date().getFullYear() %>">
                           <i class="fas fa-plus"></i>
                         </button>
                       <% } %>
@@ -281,6 +295,7 @@
       </div>
       <form id="formAjouterPaiement" method="POST" action="/paiements/add">
         <div class="modal-body">
+          <input type="hidden" id="todayValue" value="<%= new Date().toISOString().split('T')[0] %>">
           <input type="hidden" id="modalMatricule" name="numero_matricule">
           <input type="hidden" id="modalMois" name="mois">
           <input type="hidden" id="modalAnnee" name="annee">
@@ -323,6 +338,7 @@
 <%- include('partials/footer') %>
 
 <script>
+const TODAY = document.getElementById('todayValue').value;
 // Fonction pour ajouter un paiement
 function ajouterPaiement(matricule, mois, annee) {
   // Réinitialiser le modal pour l'ajout
@@ -338,7 +354,7 @@ function ajouterPaiement(matricule, mois, annee) {
 
   // Vider les champs
   document.querySelector('input[name="montant"]').value = '';
-  document.querySelector('input[name="date_paiement"]').value = '<%= new Date().toISOString().split('T')[0] %>';
+  document.querySelector('input[name="date_paiement"]').value = TODAY;
   document.querySelector('select[name="methode_paiement"]').value = 'Espèces';
 
   var modal = new bootstrap.Modal(document.getElementById('modalAjouterPaiement'));
@@ -392,6 +408,31 @@ function showModal(matricule, mois, annee, montant, datePaiement, methodePaiemen
   var modal = new bootstrap.Modal(document.getElementById('modalAjouterPaiement'));
   modal.show();
 }
+
+// Bouton "Modifier" (droit d'inscription) sans inline JS
+document.querySelectorAll('.js-modifier-paiement').forEach(function(button) {
+  button.addEventListener('click', function() {
+    var matricule = button.dataset.matricule;
+    var mois = button.dataset.mois;
+    var annee = Number(button.dataset.annee);
+    var montant = button.dataset.montant ? Number(button.dataset.montant) : undefined;
+    var datePaiement = button.dataset.date || undefined;
+    var methodePaiement = button.dataset.methode || undefined;
+
+    modifierPaiement(matricule, mois, annee, montant, datePaiement, methodePaiement);
+  });
+});
+
+// Bouton "Ajouter" sans inline JS
+document.querySelectorAll('.js-ajouter-paiement').forEach(function(button) {
+  button.addEventListener('click', function() {
+    var matricule = button.dataset.matricule;
+    var mois = button.dataset.mois;
+    var annee = Number(button.dataset.annee);
+
+    ajouterPaiement(matricule, mois, annee);
+  });
+});
 
 // Fonction pour générer un reçu
 function genererRecu(matricule) {

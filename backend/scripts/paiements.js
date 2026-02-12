@@ -2,12 +2,12 @@
 // Script pour initialiser la base de données avec la structure de paiements mensuels
 
 require('dotenv').config();
-const mongoose = require('mongoose');
+const { connectDB, mongoose } = require('../config/db');
 
 async function initPaiements() {
   try {
-    // Connexion à MongoDB
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/gestion_ecole');
+    // Connexion à MongoDB (même configuration que le serveur)
+    await connectDB();
     console.log('✅ Connecté à MongoDB');
     
     const db = mongoose.connection.db;

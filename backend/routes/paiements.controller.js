@@ -196,13 +196,14 @@ exports.showEditForm = async (req, res) => {
 // Modifier un paiement
 exports.updatePaiement = async (req, res) => {
   try {
-    const { numero_matricule, mois, annee, montant, date_paiement, methode_paiement, remarques, statut } = req.body;
+    const { numero_matricule, mois, annee, montant, date_paiement, methode_paiement, remarques, statut, type_paiement } = req.body;
 
-    // Trouver le paiement par matricule, mois et année
+    // Trouver le paiement par matricule, mois, année et type
     const paiement = await Paiement.findOne({
       numero_matricule,
       mois,
-      annee
+      annee,
+      type_paiement
     });
 
     if (!paiement) {
@@ -520,10 +521,12 @@ exports.getStatistiques = async (req, res) => {
 exports.getPayment = async (req, res) => {
   try {
     const { matricule, mois, annee } = req.query;
+    const type_paiement = mois === 'Droit' ? 'Droit' : 'Scolarité';
     const paiement = await Paiement.findOne({
       numero_matricule: matricule,
       mois,
-      annee: parseInt(annee)
+      annee: parseInt(annee),
+      type_paiement
     });
     if (!paiement) {
       return res.json({ success: false, message: 'Paiement non trouvé' });

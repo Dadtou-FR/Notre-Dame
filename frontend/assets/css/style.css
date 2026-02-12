@@ -76,6 +76,15 @@ html {
   background-clip: text;
 }
 
+/* Paiements */
+.cell-paid {
+  background: #d4edda;
+}
+
+.cell-unpaid {
+  background: #f8d7da;
+}
+
 /* Professional Sidebar Styles */
 .sidebar {
   min-height: 100vh;
