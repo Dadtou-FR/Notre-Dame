@@ -3,6 +3,53 @@ const Annee = require('../models/annees');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const puppeteer = require('puppeteer');
+
+// Helper to launch Chromium - utilise @sparticuz/chromium pour le déploiement sur Render/cloud
+async function launchBrowser() {
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'puppeteer_profile_'));
+  
+  // Arguments de base pour Chromium
+  const baseArgs = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--no-first-run',
+    '--disable-default-apps',
+    '--disable-extensions',
+    '--disable-background-networking',
+    '--disable-background-timer-throttling',
+    '--disable-breakpad',
+    '--disable-client-side-phishing-detection',
+    '--disable-sync',
+    '--metrics-recording-only',
+    '--no-service-autorun',
+    '--password-store=basic'
+  ];
+
+  const launchOptions = {
+    headless: true,
+    args: baseArgs,
+    timeout: 60000,
+    userDataDir
+  };
+
+  // Pour le déploiement sur Render ou autres plateformes cloud
+  if (process.env.RENDER || process.env.NODE_ENV === 'production') {
+    const chromium = require('@sparticuz/chromium');
+    launchOptions.executablePath = await chromium.executablePath();
+    launchOptions.args = chromium.args.concat(baseArgs);
+  } else {
+    // Pour le développement local
+    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    }
+  }
+
+  const browser = await puppeteer.launch(launchOptions);
+  return { browser, userDataDir };
+}
 
 // Helper to generate PDF with retry and timeout
 async function generatePDFWithRetry(page, options, maxRetries = 2, timeoutMs = 30000) {
@@ -404,28 +451,11 @@ exports.genererRecu = async (req, res) => {
       </html>
     `;
     
-    const puppeteer = require('puppeteer');
-    const _userDataDir_recu = fs.mkdtempSync(path.join(os.tmpdir(), 'puppeteer_profile_'));
-    const browser = await puppeteer.launch({ 
-      headless: true,
-      args: [
-        '--no-sandbox', 
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-first-run',
-        '--disable-default-apps',
-        '--disable-extensions',
-        '--disable-breakpad',
-        '--disable-client-side-phishing-detection',
-        '--disable-sync',
-        '--metrics-recording-only',
-        '--no-service-autorun',
-        '--password-store=basic'
-      ],
-      timeout: 60000,
-      userDataDir: _userDataDir_recu
-    });
+    // Utiliser launchBrowser() au lieu de puppeteer.launch() directement
+    const _launch = await launchBrowser();
+    const browser = _launch.browser;
+    const _userDataDir_recu = _launch.userDataDir;
+    
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
     
@@ -763,28 +793,11 @@ exports.genererDailyPDF = async (req, res) => {
       </html>
     `;
     
-    const puppeteer = require('puppeteer');
-    const _userDataDir_daily = fs.mkdtempSync(path.join(os.tmpdir(), 'puppeteer_profile_'));
-    const browser = await puppeteer.launch({ 
-      headless: true,
-      args: [
-        '--no-sandbox', 
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-first-run',
-        '--disable-default-apps',
-        '--disable-extensions',
-        '--disable-breakpad',
-        '--disable-client-side-phishing-detection',
-        '--disable-sync',
-        '--metrics-recording-only',
-        '--no-service-autorun',
-        '--password-store=basic'
-      ],
-      timeout: 60000,
-      userDataDir: _userDataDir_daily
-    });
+    // Utiliser launchBrowser() au lieu de puppeteer.launch() directement
+    const _launch = await launchBrowser();
+    const browser = _launch.browser;
+    const _userDataDir_daily = _launch.userDataDir;
+    
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
     
