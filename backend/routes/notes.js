@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('./notes.controller');
+const controller = require('../modules/notes/notes.controller');
 
 router.get('/', controller.getAll);
 router.get('/add', controller.showAddForm);

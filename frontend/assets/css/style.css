@@ -2114,3 +2114,13 @@ html {
 .success-animation {
   animation: successPulse 0.6s ease-in-out;
 }
+
+/* School Logo - About Page */
+.about-logo {
+  max-width: 200px;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  display: block;
+  margin: 0 auto;
+}

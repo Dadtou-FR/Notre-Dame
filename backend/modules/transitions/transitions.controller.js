@@ -8,6 +8,17 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+// Mapping des noms de matières (noms complets vers noms courts)
+const matiereMapping = {
+  'SVT (Sciences de la Vie et de la Terre)': 'SVT',
+  'EPS (Éducation Physique et Sportive)': 'EPS'
+};
+
+// Fonction pour normaliser les noms de matières
+function normalizeMatiere(matiere) {
+  return matiereMapping[matiere] || matiere;
+}
+
 // Helper to generate PDF with retry and timeout
 async function generatePDFWithRetry(page, options, maxRetries = 2, timeoutMs = 30000) {
   let lastError;
@@ -313,10 +324,16 @@ const genererBulletinArchive = async (req, res) => {
     }
     
     // Récupérer les notes détaillées depuis les archives
-    const notes = await Note.find({
+    let notes = await Note.find({
       numero_matricule: matricule,
       annee_scolaire: annee
     }).sort({ matiere: 1, session: 1 });
+    
+    // Normaliser les noms de matières
+    notes = notes.map(note => ({
+      ...note.toObject(),
+      matiere: normalizeMatiere(note.matiere)
+    }));
     
     res.json({
       success: true,

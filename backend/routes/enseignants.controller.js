@@ -35,8 +35,9 @@ const classes = [
 ];
 
 exports.getAll = async (req, res) => {
+  const { success } = req.query;
   const enseignants = await EnseignantModel.find({}).sort({ _id: 1 }).lean();
-  res.render("enseignants", { enseignants });
+  res.render("enseignants", { enseignants, success });
 };
 
 exports.showAddForm = (req, res) => {
@@ -59,7 +60,7 @@ exports.add = async (req, res) => {
       email: email || null,
       date_embauche: date_embauche ? new Date(date_embauche) : null
     });
-    res.redirect("/enseignants");
+    res.redirect("/enseignants?success=created");
   } catch (error) {
     console.error('Erreur ajout enseignant:', error);
     res.status(500).render('error', { message: 'Erreur lors de l\'ajout de l\'enseignant', title: 'Erreur' });
@@ -68,7 +69,7 @@ exports.add = async (req, res) => {
 
 exports.delete = async (req, res) => {
   await EnseignantModel.findByIdAndDelete(req.params.id);
-  res.redirect("/enseignants");
+  res.redirect("/enseignants?success=deleted");
 };
 
 // Nouvelle méthode pour voir les détails d'un enseignant
@@ -131,7 +132,7 @@ exports.update = async (req, res) => {
       email: email || null,
       date_embauche: date_embauche ? new Date(date_embauche) : null
     });
-    res.redirect("/enseignants");
+    res.redirect("/enseignants?success=updated");
   } catch (error) {
     console.error('Erreur lors de la mise à jour de l\'enseignant:', error);
     res.status(500).send('Erreur serveur');

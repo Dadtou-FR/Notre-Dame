@@ -1,5 +1,5 @@
-const NoteModel = require("./notes.model");
-const Etudiant = require('../etudiants/etudiants.model');
+const NoteModel = require('../../models/notes');
+const Etudiant = require('../../models/etudiants');
 
 // Fonction helper pour calculer l'appréciation
 function getAppreciation(note) {
@@ -21,10 +21,10 @@ function getAppreciationClass(note) {
   return 'bg-danger';
 }
 
-const Annee = require('../annees/annees.model');
+const Annee = require('../../models/annees');
 
 exports.getAll = async (req, res) => {
-  const { matricule, session } = req.query || {};
+  const { matricule, session, success } = req.query || {};
   const { annee, type_evaluation } = req.query || {};
   let filter = {};
   
@@ -99,26 +99,66 @@ exports.getAll = async (req, res) => {
   res.render("notes", { 
     etudiantsNotes: Object.values(etudiantsNotes),
     matieres,
-    query: { matricule: matricule || '', session: session || '', annee: annee || '', type_evaluation: type_evaluation || '' },
+    filters: { matricule: matricule || '', session: session || '', annee: annee || '', type_evaluation: type_evaluation || '' },
     getAppreciation,
-    getAppreciationClass
+    getAppreciationClass,
+    success
   });
 };
 
 exports.showAddForm = (req, res) => {
-  res.render("note_add");
+  res.render("note_add", { title: 'Ajouter des notes', prefilledData: {} });
 };
 
 exports.addBatch = async (req, res) => {
-  const { numero_matricule, session, type_evaluation, notes } = req.body;
+  const { numero_matricule, session, type_evaluation } = req.body;
   
   try {
+    // Vérifier que les données nécessaires sont présentes
+    if (!numero_matricule || !session || !type_evaluation) {
+      return res.status(400).send('Données incomplètes: numéro matricule, session et type d\'évaluation requis');
+    }
+    
     // Vérifier que l'élève existe
-    const Etudiant = require('../etudiants/etudiants.model');
     const etudiant = await Etudiant.findOne({ numero_matricule });
     
     if (!etudiant) {
       return res.status(400).send('Élève non trouvé avec ce numéro matricule');
+    }
+    
+    // Mapping des noms de champs du formulaire vers les noms de matières
+    const matiereFieldMap = {
+      'note_catechese': 'Catéchèse',
+      'note_philosophie_initiation': 'Philosophie / Initiation',
+      'note_malagasy': 'Malagasy',
+      'note_francais': 'Français',
+      'note_anglais': 'Anglais',
+      'note_espagnol': 'Espagnol',
+      'note_histoire_geographie': 'Histoire - Géographie',
+      'note_mathematiques': 'Mathématiques',
+      'note_physique_chimie': 'Physique - Chimie',
+      'note_svt': 'SVT',
+      'note_informatique': 'Informatique',
+      'note_eps': 'EPS'
+    };
+    
+    // Convertir les champs flats en objet notes structuré
+    const notes = {};
+    for (const [fieldName, matiere] of Object.entries(matiereFieldMap)) {
+      const noteValue = req.body[fieldName];
+      const commentaireField = fieldName.replace('note_', 'commentaire_');
+      const commentaireValue = req.body[commentaireField];
+      
+      if (noteValue !== undefined && noteValue !== null && noteValue !== '') {
+        notes[matiere] = {
+          note: noteValue,
+          commentaire: commentaireValue || ''
+        };
+      }
+    }
+    
+    if (!notes || Object.keys(notes).length === 0) {
+      return res.status(400).send('Aucune note à enregistrer');
     }
     
     // Traiter les notes saisies
@@ -128,7 +168,7 @@ exports.addBatch = async (req, res) => {
     const anneeLabel = activeAnnee ? activeAnnee.annee_label : null;
 
     for (const [matiere, data] of Object.entries(notes)) {
-      if (data.note && data.note.trim() !== '') {
+      if (data.note && data.note.toString().trim() !== '') {
         const noteValue = parseFloat(data.note);
         
         // Validation de la note
@@ -165,7 +205,7 @@ exports.addBatch = async (req, res) => {
 
 exports.showEditForm = async (req, res) => {
   const note = await NoteModel.findById(req.params.id);
-  res.render("note_edit", { note });
+  res.render("note_edit", { note, title: 'Modifier la note' });
 };
 
 exports.update = async (req, res) => {
@@ -216,6 +256,7 @@ exports.showEditStudentForm = async (req, res) => {
     session, 
     notesByMatiere,
     selectedType,
+    title: 'Modifier les notes',
     matieres: [
       'Catéchèse',
       'Philosophie / Initiation',
@@ -248,7 +289,7 @@ exports.updateStudent = async (req, res) => {
     // Créer les nouvelles notes
     const notesToCreate = [];
     
-    for (const [matiere, data] of Object.entries(notes)) {
+    for (const [matiere, data] of Object.entries(notes || {})) {
       if (data.note && data.note.trim() !== '') {
         const noteValue = parseFloat(data.note);
         
@@ -300,12 +341,15 @@ exports.searchStudents = async (req, res) => {
       return res.json([]);
     }
     
+    // Échapper les caractères spéciaux regex pour éviter les erreurs
+    const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    
     // Rechercher les étudiants dont le numéro matricule, nom ou prénom contient la requête
     const etudiants = await Etudiant.find({
       $or: [
-        { numero_matricule: new RegExp(q, 'i') },
-        { nom: new RegExp(q, 'i') },
-        { prenom: new RegExp(q, 'i') }
+        { numero_matricule: new RegExp(escapedQ, 'i') },
+        { nom: new RegExp(escapedQ, 'i') },
+        { prenom: new RegExp(escapedQ, 'i') }
       ]
     }).select('numero_matricule nom prenom classe niveau').limit(10).lean();
     

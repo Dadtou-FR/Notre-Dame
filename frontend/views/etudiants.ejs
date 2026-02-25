@@ -1,5 +1,22 @@
 <%- include('partials/header', { title: 'Liste des étudiants' }) %>
 
+<!-- Success Messages -->
+<% if (success && success !== '') { %>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    <% if (success === 'created') { %>
+      Étudiant ajouté avec succès !
+    <% } else if (success === 'updated') { %>
+      Étudiant mis à jour avec succès !
+    <% } else if (success === 'deleted') { %>
+      Étudiant supprimé avec succès !
+    <% } else { %>
+      Donnée ajoutée avec succès !
+    <% } %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+  </div>
+<% } %>
+
 <% const totalEtudiants = (etudiants || []).length; const vaccinated = (etudiants || []).filter(e => e.est_vaccine).length; %>
 <div class="row g-3 mb-4 dashboard-tiles">
   <div class="col-6 col-sm-4 col-md-3">

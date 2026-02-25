@@ -49,7 +49,7 @@ exports.create = async (req, res, next) => {
     }
 
     await Etudiant.create(etudiantData);
-    res.redirect('/etudiants');
+    res.redirect('/etudiants?success=created');
   } catch (e) {
     next(e);
   }
@@ -59,7 +59,7 @@ const EtudiantModel = require("../models/etudiants");
 
 exports.getAll = async (req, res) => {
   try {
-    const { classe, telephone_parent } = req.query;
+    const { classe, telephone_parent, success } = req.query;
 
     // Construire le filtre
     const filter = {};
@@ -76,7 +76,7 @@ exports.getAll = async (req, res) => {
     // Récupérer les classes uniques pour le select
     const classes = await EtudiantModel.distinct('classe').sort();
 
-    res.render("etudiants", { etudiants, classes, filters: { classe, telephone_parent } });
+    res.render("etudiants", { etudiants, classes, filters: { classe, telephone_parent }, success });
   } catch (error) {
     console.error('Erreur lors de la récupération des étudiants:', error);
     res.status(500).render('error', {
@@ -127,7 +127,7 @@ exports.add = async (req, res) => {
     }
 
     await EtudiantModel.create(etudiantData);
-    res.redirect("/etudiants");
+    res.redirect("/etudiants?success=created");
   } catch (error) {
     console.error('Erreur lors de l\'ajout:', error);
     res.status(500).render('error', { 
@@ -194,7 +194,7 @@ exports.update = async (req, res) => {
     }
 
     await EtudiantModel.findByIdAndUpdate(req.params.id, etudiantData);
-    res.redirect("/etudiants");
+    res.redirect("/etudiants?success=updated");
   } catch (error) {
     console.error('Erreur lors de la modification:', error);
     res.status(500).render('error', { 
@@ -206,7 +206,7 @@ exports.update = async (req, res) => {
 
 exports.delete = async (req, res) => {
   await EtudiantModel.findByIdAndDelete(req.params.id);
-  res.redirect("/etudiants");
+  res.redirect("/etudiants?success=deleted");
 };
 
 // Générer le prochain numéro de matricule

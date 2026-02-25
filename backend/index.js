@@ -424,6 +424,17 @@ app.get('/certificat/pdf', async (req, res) => {
   }
 });
 
+// Mapping des noms de matières (noms complets vers noms courts)
+const matiereMapping = {
+  'SVT (Sciences de la Vie et de la Terre)': 'SVT',
+  'EPS (Éducation Physique et Sportive)': 'EPS'
+};
+
+// Fonction pour normaliser les noms de matières
+function normalizeMatiere(matiere) {
+  return matiereMapping[matiere] || matiere;
+}
+
 // Route pour afficher les bulletins
 app.get('/bulletin', async (req, res) => {
   try {
@@ -437,6 +448,12 @@ app.get('/bulletin', async (req, res) => {
       if (etudiant) {
         // Récupérer toutes les notes de l'étudiant
         allNotes = await Note.find({ numero_matricule: matricule }).lean();
+        
+        // Normaliser les noms de matières pour le bulletin
+        allNotes = allNotes.map(note => ({
+          ...note,
+          matiere: normalizeMatiere(note.matiere)
+        }));
       }
     }
     
@@ -587,7 +604,14 @@ app.get('/bulletin/pdf', async (req, res) => {
       return res.status(404).send('Élève non trouvé');
     }
     
-    const notes = await Note.find({ numero_matricule: matricule }).sort({ createdAt: -1 }).lean();
+    let notes = await Note.find({ numero_matricule: matricule }).sort({ createdAt: -1 }).lean();
+    
+    // Normaliser les noms de matières pour le bulletin PDF
+    notes = notes.map(note => ({
+      ...note,
+      matiere: normalizeMatiere(note.matiere)
+    }));
+    
     const moyenneGenerale = notes.length > 0 ? notes.reduce((total, note) => total + note.note, 0) / notes.length : 0;
     
     const html = `

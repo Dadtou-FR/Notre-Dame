@@ -1,5 +1,22 @@
 <%- include('partials/header', { title: 'Gestion des notes' }) %>
 
+<!-- Success Messages -->
+<% if (success && success !== '') { %>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    <% if (success === 'batch_added') { %>
+      Les notes ont été ajoutées avec succès !
+    <% } else if (success === 'updated') { %>
+      Les notes ont été mises à jour avec succès !
+    <% } else if (success === 'deleted') { %>
+      Les notes ont été supprimées avec succès !
+    <% } else { %>
+      Donnée ajoutée avec succès !
+    <% } %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+  </div>
+<% } %>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
     <h2 class="h4 mb-0">Gestion des notes</h2>
@@ -44,7 +61,17 @@
             <th style="min-width: 120px;">Matricule</th>
             <th style="min-width: 120px;">Session</th>
             <th style="min-width: 140px;">Type d'évaluation</th>
-            <% matieres.forEach(function(matiere) { %>
+            <% 
+              const matiereMapping = {
+                'SVT (Sciences de la Vie et de la Terre)': 'SVT',
+                'EPS (Éducation Physique et Sportive)': 'EPS'
+              };
+              function normalizeMatiere(matiere) {
+                return matiereMapping[matiere] || matiere;
+              }
+              const matieresNorm = matieres.map(m => normalizeMatiere(m));
+            %>
+            <% matieresNorm.forEach(function(matiere) { %>
               <th style="min-width: 80px; text-align: center;"><%= matiere %></th>
             <% }) %>
             <th style="min-width: 100px; text-align: center;">Moyenne</th>
@@ -55,7 +82,7 @@
         <tbody>
           <% if ((etudiantsNotes || []).length === 0) { %>
             <tr>
-              <td colspan="<%= matieres.length + 6 %>" class="text-center py-5">
+              <td colspan="<%= matieresNorm.length + 6 %>" class="text-center py-5">
                 <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                 <p class="text-muted">Aucune note trouvée</p>
               </td>
@@ -75,11 +102,14 @@
                   %>
                   <span class="badge <%= typeClass %>"><%= etudiant.type_evaluation %></span>
                 </td>
-                <% matieres.forEach(function(matiere) { %>
+                <% matieresNorm.forEach(function(matiere) { %>
                   <td class="text-center">
-                    <% if (etudiant.notes[matiere]) { %>
-                      <span class="badge <%= etudiant.notes[matiere].note >= 16 ? 'bg-success' : etudiant.notes[matiere].note >= 12 ? 'bg-warning' : 'bg-danger' %> fs-6">
-                        <%= etudiant.notes[matiere].note %>/20
+                    <% 
+                      const matiereOriginal = matieres[matieresNorm.indexOf(matiere)];
+                      if (etudiant.notes[matiereOriginal]) { 
+                    %>
+                      <span class="badge <%= etudiant.notes[matiereOriginal].note >= 16 ? 'bg-success' : etudiant.notes[matiereOriginal].note >= 12 ? 'bg-warning' : 'bg-danger' %> fs-6">
+                        <%= etudiant.notes[matiereOriginal].note %>/20
                       </span>
                     <% } else { %>
                       <span class="text-muted">-</span>

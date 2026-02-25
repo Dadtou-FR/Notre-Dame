@@ -1,5 +1,22 @@
 <%- include('partials/header', { title: 'Gestion des enseignants' }) %>
 
+<!-- Success Messages -->
+<% if (success && success !== '') { %>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    <% if (success === 'created') { %>
+      Enseignant ajouté avec succès !
+    <% } else if (success === 'updated') { %>
+      Enseignant mis à jour avec succès !
+    <% } else if (success === 'deleted') { %>
+      Enseignant supprimé avec succès !
+    <% } else { %>
+      Donnée ajoutée avec succès !
+    <% } %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+  </div>
+<% } %>
+
 <!-- En-tête avec titre et bouton d'ajout -->
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>

@@ -513,6 +513,17 @@
 
   <!-- TABLEAU DES NOTES -->
   <% 
+    // Mapping des noms de matières (noms complets vers noms courts)
+    const matiereMapping = {
+      'SVT (Sciences de la Vie et de la Terre)': 'SVT',
+      'EPS (Éducation Physique et Sportive)': 'EPS'
+    };
+    
+    // Fonction pour normaliser les noms de matières
+    function normalizeMatiere(matiere) {
+      return matiereMapping[matiere] || matiere;
+    }
+    
     const matieres = [
       'Catéchèse',
       'Philosophie / Initiation',
@@ -534,10 +545,12 @@
     let notesIndex = {};
     if (allNotes && allNotes.length > 0) {
       allNotes.forEach(note => {
-        const key = `${note.matiere}_${note.session}_${note.type_evaluation}`;
+        // Normaliser le nom de la matière pour l'index
+        const matiereNorm = normalizeMatiere(note.matiere);
+        const key = `${matiereNorm}_${note.session}_${note.type_evaluation}`;
         // Préférer les notes de Contrôle Continu
-        if (!notesIndex[`${note.matiere}_${note.session}`] || note.type_evaluation === 'Controle Continu') {
-          notesIndex[`${note.matiere}_${note.session}`] = note.note;
+        if (!notesIndex[`${matiereNorm}_${note.session}`] || note.type_evaluation === 'Controle Continu') {
+          notesIndex[`${matiereNorm}_${note.session}`] = note.note;
         }
       });
     }
