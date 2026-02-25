@@ -29,13 +29,13 @@ router.get('/payment', requirePaymentAuth, paiementsController.getPayment);
 
 // Paiements journaliers
 router.get('/daily/:date', requirePaymentAuth, paiementsController.getDailyPaiements);
-router.get('/daily/:date/pdf', requirePaymentAuth, paiementsController.genererDailyPDF);
+router.get('/daily/:date/pdf', paiementsController.genererDailyPDF);
 
 // Détails des paiements d'un étudiant
 router.get('/etudiant/:matricule', requirePaymentAuth, paiementsController.getPaiementsEtudiant);
 
 // Générer un reçu
-router.get('/recu/:matricule', requirePaymentAuth, paiementsController.genererRecu);
+router.get('/recu/:matricule', paiementsController.genererRecu);
 
 // Modifier un paiement
 router.get('/:id/edit', requirePaymentAuth, paiementsController.showEditForm);

@@ -52,7 +52,9 @@ exports.requireLogin = (req, res, next) => {
     '/js',
     '/socket.io',
     '/paiements/login',
-    '/paiements/login/process'
+    '/paiements/login/process',
+    '/paiements/daily/',
+    '/paiements/recu/'
   ];
 
   // Autoriser les fichiers statiques et les routes publiques (prefix match)
