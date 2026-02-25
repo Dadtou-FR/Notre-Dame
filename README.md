@@ -72,11 +72,14 @@ Une application web complète pour la gestion d'établissements scolaires, déve
 ### Backend
 - **Node.js** - Environnement d'exécution JavaScript
 - **Express.js** - Framework web minimaliste
-- **MySQL** - Base de données relationnelle
+- **MongoDB** - Base de données NoSQL
+- **Mongoose** - ODM pour MongoDB
 - **JWT** - Authentification par tokens
 - **bcryptjs** - Hachage des mots de passe
 - **express-validator** - Validation des données
 - **multer** - Gestion des uploads de fichiers
+- **socket.io** - Communication en temps réel
+- **puppeteer** - Génération de PDF (bulletins, certificats)
 
 ### Frontend
 - **EJS** - Moteur de templates

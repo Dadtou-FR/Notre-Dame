@@ -8,19 +8,112 @@
 </div>
 
 <div class="card card-modern fade-in mb-4">
-  <div class="card-header">Recherche par matricule</div>
+  <div class="card-header">Recherche automatique (Matricule, Nom ou Prénom)</div>
   <div class="card-body">
-    <form method="get" action="/certificat" class="row g-3">
-      <div class="col-md-6">
-        <label class="form-label" for="matricule">Matricule de l'étudiant</label>
-        <input id="matricule" name="matricule" class="form-control" value="<%= (query && query.matricule) || '' %>" placeholder="Ex: 2025-0001">
+    <!-- Recherche automatique avec suggestions -->
+    <div class="row g-3">
+      <div class="col-md-6 position-relative">
+        <label class="form-label" for="search-etudiant">Rechercher un étudiant</label>
+        <input type="text" id="search-etudiant" class="form-control" placeholder="Tapez le matricule, nom ou prénom..." autocomplete="off">
+        <div id="search-results" class="list-group position-absolute w-100" style="z-index: 1000; max-height: 300px; overflow-y: auto; display: none;"></div>
       </div>
       <div class="col-md-6 d-flex align-items-end">
-        <button type="submit" class="btn btn-primary btn-modern"><i class="fas fa-search me-2"></i>Rechercher</button>
+        <button type="button" id="btn-rechercher" class="btn btn-primary btn-modern"><i class="fas fa-search me-2"></i>Rechercher</button>
       </div>
-    </form>
+    </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('search-etudiant');
+  const searchResults = document.getElementById('search-results');
+  const btnRechercher = document.getElementById('btn-rechercher');
+  let debounceTimer;
+
+  // Fonction de recherche avec debounce
+  searchInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    const query = this.value.trim();
+    
+    if (query.length < 2) {
+      searchResults.style.display = 'none';
+      return;
+    }
+
+    debounceTimer = setTimeout(() => {
+      fetch('/api/etudiants/search?q=' + encodeURIComponent(query))
+        .then(res => res.json())
+        .then(data => {
+          if (data.etudiants && data.etudiants.length > 0) {
+            displayResults(data.etudiants);
+          } else {
+            searchResults.innerHTML = '<div class="list-group-item text-muted">Aucun étudiant trouvé</div>';
+            searchResults.style.display = 'block';
+          }
+        })
+        .catch(err => {
+          console.error('Erreur de recherche:', err);
+          searchResults.style.display = 'none';
+        });
+    }, 300);
+  });
+
+  // Afficher les résultats
+  function displayResults(etudiants) {
+    searchResults.innerHTML = '';
+    etudiants.forEach(function(etudiant) {
+      // L'API retourne 'matricule' comme clé principale
+      var mat = etudiant.matricule || etudiant.numero_matricule || '';
+      var cls = etudiant.classe || 'Sans classe';
+      var item = document.createElement('a');
+      item.href = '#';
+      item.className = 'list-group-item list-group-item-action';
+      item.innerHTML = '<div class="d-flex justify-content-between align-items-center"><div><strong>' + etudiant.nom + ' ' + etudiant.prenom + '</strong><br><small class="text-muted">' + mat + '</small></div><span class="badge bg-primary">' + cls + '</span></div>';
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        selectEtudiant(etudiant);
+      });
+      searchResults.appendChild(item);
+    });
+    searchResults.style.display = 'block';
+  }
+
+  // Sélectionner un étudiant
+  function selectEtudiant(etudiant) {
+    var mat = etudiant.matricule || etudiant.numero_matricule || '';
+    searchInput.value = etudiant.nom + ' ' + etudiant.prenom + ' (' + mat + ')';
+    searchResults.style.display = 'none';
+    window.location.href = '/certificat?matricule=' + mat;
+  }
+
+  // Fermer les résultats si on clique ailleurs
+  document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+      searchResults.style.display = 'none';
+    }
+  });
+
+  // Bouton rechercher classique
+  btnRechercher.addEventListener('click', function() {
+    const query = searchInput.value.trim();
+    if (query) {
+      window.location.href = '/certificat?matricule=' + encodeURIComponent(query);
+    }
+  });
+
+  // Recherche par Entrée
+  searchInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const query = this.value.trim();
+      if (query) {
+        window.location.href = '/certificat?matricule=' + encodeURIComponent(query);
+      }
+    }
+  });
+});
+</script>
 
 <% if (etudiant) { %>
 <div class="card card-modern">

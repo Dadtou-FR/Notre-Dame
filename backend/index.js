@@ -12,35 +12,51 @@ const os = require('os');
 
 const { connectDB } = require('./config/db');
 
-// Helper to launch Chromium with a unique user profile to avoid lockfile conflicts on Windows
+// Helper to launch Chromium - utilise @sparticuz/chromium pour le déploiement sur Render/cloud
 async function launchBrowser() {
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'puppeteer_profile_'));
+  
+  // Arguments de base pour Chromium
+  const baseArgs = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--no-first-run',
+    '--disable-default-apps',
+    '--disable-extensions',
+    '--disable-background-networking',
+    '--disable-background-timer-throttling',
+    '--disable-breakpad',
+    '--disable-client-side-phishing-detection',
+    '--disable-sync',
+    '--metrics-recording-only',
+    '--no-service-autorun',
+    '--password-store=basic'
+  ];
+
   const launchOptions = {
     headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--no-first-run',
-      '--disable-default-apps',
-      '--disable-extensions',
-      '--disable-background-networking',
-      '--disable-background-timer-throttling',
-      '--disable-breakpad',
-      '--disable-client-side-phishing-detection',
-      '--disable-sync',
-      '--metrics-recording-only',
-      '--no-service-autorun',
-      '--password-store=basic'
-    ],
+    args: baseArgs,
     timeout: 60000,
     userDataDir
   };
 
+  // Pour le déploiement sur Render ou autres plateformes cloud
+  // Utiliser @sparticuz/chromium au lieu de Chrome installé
+  if (process.env.RENDER || process.env.NODE_ENV === 'production') {
+    const chromium = require('@sparticuz/chromium');
+    launchOptions.executablePath = await chromium.executablePath();
+    launchOptions.args = chromium.args.concat(baseArgs);
+  } else {
+    // Pour le développement local, utiliser le chemin spécifié ou auto-détection
+    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    }
+  }
+
   // Optional debug: pipe browser stdout/stderr to node stdout when env var set
   if (process.env.PUPPETEER_DUMPIO === 'true') launchOptions.dumpio = true;
-  if (process.env.PUPPETEER_EXECUTABLE_PATH) launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
 
   const browser = await puppeteer.launch(launchOptions);
   return { browser, userDataDir };
