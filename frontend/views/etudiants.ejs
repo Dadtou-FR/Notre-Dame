@@ -44,6 +44,9 @@
       <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
       <input id="search-etudiants" type="text" class="form-control" placeholder="Rechercher (nom, matricule, classe...)" />
     </div>
+    <button type="button" class="btn btn-outline-secondary btn-modern no-print" onclick="window.print()" title="Imprimer la liste filtrée">
+      <i class="fas fa-print me-2"></i>Imprimer
+    </button>
     <button type="button" class="btn btn-outline-primary btn-modern" onclick="window.AppTables?.exportToCSV('table-etudiants','etudiants.csv')">
       <i class="fas fa-file-export me-2"></i>Exporter CSV
     </button>
@@ -66,8 +69,8 @@
     <label for="telephone_parent" class="form-label">Filtrer par téléphone parent</label>
     <input type="text" name="telephone_parent" id="telephone_parent" class="form-control" placeholder="Numéro de téléphone" value="<%= (filters && filters.telephone_parent) || '' %>">
   </div>
-  <div class="col-md-4 d-flex align-items-end">
-    <button type="submit" class="btn btn-primary me-2">
+  <div class="col-md-4 d-flex align-items-end gap-2">
+    <button type="submit" class="btn btn-primary">
       <i class="fas fa-filter me-1"></i>Filtrer
     </button>
     <a href="/etudiants" class="btn btn-outline-secondary">
@@ -76,53 +79,82 @@
   </div>
 </form>
 
+<!-- Section d'affichage des filtres appliqués - VISIBLE À L'ÉCRAN ET EN IMPRESSION -->
+<% 
+  let hasFilters = (filters && (filters.classe || filters.telephone_parent));
+%>
+<% if (hasFilters) { %>
+  <div class="alert alert-info alert-dismissible fade show" role="alert" style="border-left: 4px solid #0d6efd;">
+    <i class="fas fa-filter me-2"></i><strong>Filtres actifs:</strong>
+    <% if (filters.classe) { %>
+      <span class="badge bg-primary me-2"><%= filters.classe %></span>
+    <% } %>
+    <% if (filters.telephone_parent) { %>
+      <span class="badge bg-primary"><%= filters.telephone_parent %></span>
+    <% } %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+  </div>
+<% } %>
+
+<!-- Section d'affichage des filtres à l'impression (pour cohérence avec l'écran) -->
+<div class="p-3 print-only" id="printFiltersInfo" style="border: 1px solid #666; border-radius: 4px; background-color: #f8f9fa; margin-bottom: 1rem;">
+  <h6 class="mb-2"><i class="fas fa-filter me-2"></i>Filtres appliqués</h6>
+  <p class="mb-0" id="printFiltersText">Aucun filtre appliqué</p>
+</div>
+
 <div class="card card-modern fade-in compact-body">
+  <div class="card-header print-header print-only">
+    <h4>Liste des Étudiants</h4>
+    <p style="margin: 0; font-size: 10pt; color: #666;">
+      Généré le <%= new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+    </p>
+  </div>
   <div class="card-body">
     <div class="table-responsive table-modern table-compact">
-      <table id="table-etudiants" class="table table-hover align-middle mb-0">
+      <table id="table-etudiants" class="table table-hover align-middle mb-0 print-table">
         <thead>
           <tr>
-            <th>Matricule</th>
-            <th>Nom</th>
-            <th>Prénom</th>
-            <th>Date Naissance</th>
-            <th>Lieu Naissance</th>
-            <th>Classe</th>
-            <th>Téléphone Parent</th>
-            <th>Vacciné</th>
-            <th>Actions</th>
+            <th style="width: 12%;">Matricule</th>
+            <th style="width: 15%;">Nom</th>
+            <th style="width: 15%;">Prénom</th>
+            <th style="width: 13%;">Date Naissance</th>
+            <th style="width: 13%;">Lieu Naissance</th>
+            <th style="width: 10%;">Classe</th>
+            <th style="width: 13%;">Téléphone Parent</th>
+            <th style="width: 8%;">Vacciné</th>
+            <th class="no-print" style="width: 5%;">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% (etudiants || []).forEach(function(e){ %>
             <tr>
-              <td><span class="badge bg-light text-dark"><%= e.numero_matricule %></span></td>
-              <td><%= e.nom %></td>
+              <td><span class="badge bg-light text-dark" style="border: 1px solid #333;"><%= e.numero_matricule %></span></td>
+              <td><% if (e.nom) { %><%= e.nom %><% } else { %><span class="text-muted">-</span><% } %></td>
               <td><%= e.prenom %></td>
               <td>
                 <% if (e.date_naissance) { %>
-                  <i class="fas fa-calendar me-1 text-muted"></i><%= new Date(e.date_naissance).toLocaleDateString('fr-FR') %>
+                  <span class="print-date"><%= new Date(e.date_naissance).toLocaleDateString('fr-FR') %></span>
                 <% } else { %>
                   <span class="text-muted">-</span>
                 <% } %>
               </td>
               <td>
                 <% if (e.lieu_naissance) { %>
-                  <i class="fas fa-map-marker-alt me-1 text-muted"></i><%= e.lieu_naissance %>
+                  <span class="print-text"><%= e.lieu_naissance %></span>
                 <% } else { %>
                   <span class="text-muted">-</span>
                 <% } %>
               </td>
-              <td><%= e.classe %></td>
-              <td><i class="fas fa-phone me-1 text-muted"></i><%= e.telephone_parent %></td>
+              <td><span style="border: 1px solid #999; padding: 2px 4px;"><%= e.classe %></span></td>
+              <td><span class="print-phone"><%= e.telephone_parent %></span></td>
               <td>
                 <% if (e.est_vaccine) { %>
-                  <span class="badge bg-success">Oui</span>
+                  <span class="badge bg-success" style="border: 1px solid #000;">✓</span>
                 <% } else { %>
-                  <span class="badge bg-secondary">Non</span>
+                  <span class="badge bg-secondary" style="border: 1px solid #000;">✗</span>
                 <% } %>
               </td>
-              <td>
+              <td class="no-print">
                 <div class="btn-group">
                   <a href="/etudiants/edit/<%= e._id %>" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Modifier"><i class="fas fa-edit"></i></a>
                   <a href="/etudiants/delete/<%= e._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer ?')" data-bs-toggle="tooltip" title="Supprimer"><i class="fas fa-trash"></i></a>
@@ -156,6 +188,28 @@
       }, 300));
     }
   })();
+
+  // Fonction pour mettre à jour les filtres affichés à l'impression
+  function updatePrintFiltersInfo() {
+    const classe = document.getElementById('classe').value;
+    const telephone = document.getElementById('telephone_parent').value;
+    const printFiltersText = document.getElementById('printFiltersText');
+    
+    let filtersApplied = [];
+    if (classe) filtersApplied.push(`Classe: <strong>${classe}</strong>`);
+    if (telephone) filtersApplied.push(`Téléphone parent: <strong>${telephone}</strong>`);
+    
+    if (filtersApplied.length > 0) {
+      printFiltersText.innerHTML = filtersApplied.join(' | ');
+    } else {
+      printFiltersText.innerHTML = 'Aucun filtre appliqué';
+    }
+  }
+
+  // Mettre à jour les filtres au chargement et lors des changements de filtre
+  updatePrintFiltersInfo();
+  document.getElementById('classe').addEventListener('change', updatePrintFiltersInfo);
+  document.getElementById('telephone_parent').addEventListener('input', updatePrintFiltersInfo);
 </script>
 
 <%- include('partials/footer') %>

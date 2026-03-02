@@ -528,6 +528,13 @@ html {
   position: relative;
 }
 
+/* Make compact cards transparent so tables are not hidden behind panels */
+.card-modern.compact-body {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
 .card-modern:hover {
   box-shadow: var(--box-shadow-lg);
 }
@@ -545,12 +552,16 @@ html {
 .card-modern .card-body {
   padding: 2rem;
   background: var(--bg-primary);
+  position: relative;
+  z-index: 0;
 }
 
 /* Compact variants for dense datagrids */
 .card-modern.compact-body .card-body {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  padding: 0 !important;
+  background: transparent;
+  position: relative;
+  z-index: 1;
 }
 
 /* Modern Buttons */
@@ -663,6 +674,8 @@ html {
   box-shadow: var(--box-shadow);
   background: var(--bg-primary);
   border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 2;
 }
 
 .table-modern thead th {
@@ -1357,6 +1370,72 @@ html {
   }
 }
 
+/* STYLES POUR LES TABLEAUX D'IMPRESSION A4 */
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin: 1rem 0;
+}
+
+.print-table thead {
+  background-color: #e9ecef;
+}
+
+.print-table thead th {
+  padding: 8px 6px;
+  font-weight: bold;
+  border: 1px solid #999;
+  text-align: left;
+  font-size: 11px;
+}
+
+.print-table tbody tr {
+  height: auto;
+}
+
+.print-table tbody td {
+  padding: 6px;
+  border: 1px solid #ccc;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  vertical-align: top;
+}
+
+.print-table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.print-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.print-table tbody tr:hover {
+  background-color: #ffffff;
+}
+
+/* Styles pour le texte imprimable */
+.print-phone {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.print-email {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  word-break: break-word;
+}
+
+.print-date {
+  font-size: 11px;
+}
+
+.print-text {
+  font-size: 11px;
+}
+
 /* PAIEMENTS - RESPONSIVE */
 @media (max-width: 992px) {
   .card-modern .card-body {
@@ -1615,6 +1694,9 @@ html {
   border-radius: var(--border-radius-lg);
   overflow-x: auto; /* activer le scroll horizontal pour grands tableaux */
   overflow-y: hidden;
+  position: relative;
+  z-index: 2;
+  background: transparent;
 }
 
 .table-responsive::-webkit-scrollbar {
@@ -1672,13 +1754,15 @@ html {
   
   /* Désactiver les box-shadow complexes */
   .card-modern,
-  .table-modern,
-  .btn-modern {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  .table-modern {
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 2;
   }
-}
-
-/* LANDSCAPE MODE (MODE PAYSAGE) */
 @media (max-width: 768px) and (orientation: landscape) {
   .main-header {
     padding: 0.5rem;
@@ -1804,32 +1888,490 @@ html {
   }
 }
 
-/* Print Styles */
+/* Masquer les éléments print-only sur l'écran */
+.print-only {
+  display: none !important;
+}
+
+/* Print Styles - Optimisé pour papier A4 */
 @media print {
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  /* Masquer les éléments non-imprimables */
   .sidebar,
   .main-header,
-  .btn,
   .pagination,
-  .no-print {
+  .no-print,
+  .btn:not(.print-button),
+  .form-control,
+  .form-select,
+  .input-group,
+  .navbar,
+  .footer {
     display: none !important;
   }
 
-  /* elements meant only for print should be visible */
+  /* Afficher les éléments pour l'impression */
   .print-only {
     display: block !important;
   }
-  
+
+  /* Configuration de la page */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  /* Contenu principal */
   .content-wrapper {
     margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
   }
-  
+
+  .container,
+  .container-fluid {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Cartes d'impression */
   .card {
-    box-shadow: none !important;
+    page-break-inside: avoid;
     border: 1px solid #000 !important;
+    margin-bottom: 1rem !important;
+    padding: 0 !important;
   }
-  
-  .table {
-    font-size: 12px;
+
+  .card-header {
+    background: #f1f3f5 !important;
+    border-bottom: 2px solid #000 !important;
+    page-break-inside: avoid;
+    padding: 8pt !important;
+  }
+
+  .card-body {
+    padding: 8pt !important;
+  }
+
+  /* Titres */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 { font-size: 18pt !important; font-weight: bold; }
+  h2 { font-size: 16pt !important; font-weight: bold; }
+  h3 { font-size: 14pt !important; font-weight: bold; }
+  h4, h5, h6 { font-size: 12pt !important; font-weight: bold; }
+
+  /* Tableaux optimisés pour l'impression A4 */
+  .table-responsive {
+    overflow: visible !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 8pt !important;
+    line-height: 1.2 !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* En-têtes du tableau */
+  thead {
+    display: table-header-group !important;
+    page-break-inside: avoid;
+    page-break-after: avoid;
+    background: #c0c0c0 !important;
+  }
+
+  tbody {
+    page-break-inside: avoid !important;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+    border-bottom: 1px solid #999 !important;
+    height: auto !important;
+  }
+
+  th {
+    background: #c0c0c0 !important;
+    color: black !important;
+    border: 1px solid #666 !important;
+    padding: 4pt 5pt !important;
+    text-align: center !important;
+    font-weight: bold !important;
+    font-size: 7pt !important;
+    position: relative !important;
+    z-index: auto !important;
+  }
+
+  td {
+    border: 1px solid #ccc !important;
+    padding: 4pt 5pt !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+    vertical-align: top !important;
+    font-size: 7pt !important;
+  }
+
+  tbody tr {
+    background: white !important;
+  }
+
+  tbody tr:nth-child(even) {
+    background: #f5f5f5 !important;
+  }
+
+  tbody tr:nth-child(odd) {
+    background: white !important;
+  }
+
+  /* Éviter les débordements de texte */
+  td span, td div, td p {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    font-size: inherit !important;
+  }
+
+  /* Cells avec sticky - désactiver à l'impression */
+  th[style*="sticky"],
+  td[style*="sticky"] {
+    position: static !important;
+    z-index: auto !important;
+  }
+
+  /* Masquer la colonne Actions et les petites icônes */
+  th:nth-last-child(1),
+  td:nth-last-child(1),
+  .no-print,
+  .text-muted {
+    display: none !important;
+  }
+
+  /* Traiter spécifiquement certaines colonnes */
+  thead th[style*="display: none"],
+  tbody td[style*="display: none"] {
+    display: none !important;
+  }
+
+  /* Afficher les autres cellules */
+  table th:nth-last-child(2),
+  table td:nth-last-child(2) {
+    display: table-cell !important;
+  }
+
+  /* Petites icônes Font Awesome à masquer */
+  i.fa-chevron-right,
+  i.fa-calendar,
+  i.fa-map-marker-alt,
+  i.fa-phone,
+  i.fa-envelope,
+  i.fa-user,
+  i.fa-book,
+  i.fa-school,
+  i.fa-layer-group,
+  i.fa-cogs,
+  .fa-user-slash,
+  i.me-1,
+  i.me-2,
+  i.me-3 {
+    display: none !important;
+  }
+
+  /* Avatar circles masqués */
+  .avatar-circle {
+    display: none !important;
+  }
+
+  /* Flex containers simplifiés */
+  .d-flex {
+    display: block !important;
+  }
+
+  /* Alignment override */
+  .align-items-center {
+    align-items: inherit !important;
+  }
+
+  /* Badges d'impression */
+  .badge {
+    border: 1px solid #000 !important;
+    padding: 2pt 4pt !important;
+    font-size: 8pt !important;
+    display: inline-block !important;
+    margin: 1pt !important;
+  }
+
+  /* Classes pour texte d'impression */
+  .print-phone,
+  .print-email,
+  .print-date,
+  .print-text {
+    font-family: 'Courier New', monospace !important;
+    font-size: 8pt !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .print-phone {
+    color: #333 !important;
+  }
+
+  .print-email {
+    color: #333 !important;
+    font-size: 7pt !important;
+  }
+
+  .print-date {
+    color: #333 !important;
+  }
+
+  /* Styles pour les tableaux d'impression */
+  .print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .print-table thead tr {
+    background: #c0c0c0 !important;
+  }
+
+  .print-table tbody tr:nth-child(odd) {
+    background: #ffffff !important;
+  }
+
+  .print-table tbody tr:nth-child(even) {
+    background: #f0f0f0 !important;
+  }
+
+  .print-table td,
+  .print-table th {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+
+  /* Section des filtres à l'impression */
+  #printFiltersInfo, #printPaymentFiltersText {
+    display: block !important;
+    border: 1px solid #999 !important;
+    padding: 8pt !important;
+    margin-bottom: 10pt !important;
+    background: #f5f5f5 !important;
+    page-break-inside: avoid;
+  }
+
+  #printFiltersText, #printPaymentFiltersText {
+    font-size: 10pt;
+  }
+
+  /* Statistiques */
+  .stats-card, .tile {
+    page-break-inside: avoid;
+    border: 1px solid #999 !important;
+    page-break-after: auto;
+  }
+
+  /* Texte de notification */
+  .alert {
+    display: none !important;
+  }
+
+  /* Espacement et sauts de page */
+  .row {
+    page-break-inside: avoid;
+  }
+
+  /* Éviter les orphelins/veuves */
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Images */
+  img {
+    max-width: 100%;
+  }
+
+  /* Liens */
+  a {
+    text-decoration: underline;
+  }
+
+  /* Impression des codes couleur des badges */
+  .bg-success { background: #c6e48b !important; color: black !important; }
+  .bg-warning { background: #f7dc6f !important; color: black !important; }
+  .bg-danger { background: #f5b7b1 !important; color: black !important; }
+  .bg-info { background: #85c1e2 !important; color: black !important; }
+  .bg-primary { background: #85c1e2 !important; color: black !important; }
+  .bg-secondary { background: #d5d8dc !important; color: black !important; }
+
+  /* En-têtes et pieds personnalisés */
+  .print-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    page-break-after: avoid;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.5rem;
+  }
+
+  .print-timestamp {
+    font-size: 9pt;
+    color: #666;
+    text-align: right;
+    margin-top: 1rem;
+  }
+
+  /* ========================================= */
+  /* MASQUER ÉLÉMENTS INUTILES À L'IMPRESSION */
+  /* ========================================= */
+
+  /* Masquer les statistiques (dashboard-tiles) */
+  .dashboard-tiles,
+  .stats-card,
+  .tile {
+    display: none !important;
+  }
+
+  /* Masquer l'en-tête avec titre, boutons et barre de recherche */
+  .d-flex.flex-wrap.gap-2.justify-content-between.align-items-center {
+    display: none !important;
+  }
+
+  /* Masquer SEULEMENT le formulaire de filtrage (la ligne avec les inputs de filtre) */
+  form[method="GET"],
+  form[action*="/etudiants"],
+  form[action*="/enseignants"],
+  form[action*="/paiements"],
+  form[action*="/notes"],
+  form[action*="/transitions"],
+  form[action*="/paiements_login"] {
+    display: none !important;
+  }
+
+  /* Masquer les alertes */
+  .alert {
+    display: none !important;
+  }
+
+  /* Masquer les contrôles spécifiquement dans le header
+     (à l'intérieur du d-flex qu'on masque déjà) */
+  .input-group {
+    display: none !important;
+  }
+
+  .btn-outline-secondary,
+  .btn-outline-primary,
+  .btn-modern {
+    display: none !important;
+  }
+
+  /* Masquer les cartes stats */
+  .tile {
+    display: none !important;
+  }
+
+  /* Afficher SEULEMENT la section des filtres appliqués */
+  #printFiltersInfo,
+  #printFilters,
+  #printPaymentFiltersText {
+    display: block !important;
+    border: 1px solid #666 !important;
+    padding: 10pt !important;
+    margin-bottom: 15pt !important;
+    background: #fff !important;
+    page-break-inside: avoid;
+    page-break-after: avoid;
+  }
+
+  #printFiltersInfo h6,
+  #printPaymentFiltersText h6 {
+    display: block !important;
+    font-size: 11pt !important;
+    font-weight: bold !important;
+    margin-bottom: 5pt !important;
+  }
+
+  #printFiltersText,
+  #printFilters,
+  #printPaymentFiltersText {
+    display: block !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Masquer le card-body padding inutile */
+  .card-body {
+    padding: 0 !important;
+  }
+
+  /* Afficher le tableau de manière compacte */
+  .table-responsive {
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Masquer le wrapper inutile du tableau */
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .card-header.print-header {
+    display: block !important;
+  }
+
+  .card-header:not(.print-header) {
+    display: none !important;
+  }
+
+  /* Masquer les autres éléments Non-Essentiels */
+  nav,
+  footer,
+  .navbar,
+  .sidebar {
+    display: none !important;
+  }
+
+  /* Assurer que le tableau principal est visible */
+  #table-etudiants,
+  #table-enseignants,
+  #table-paiements {
+    display: table !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Masquer les liens de l'en-tête */
+  a:not(.print-link) {
+    text-decoration: none !important;
   }
 }
 
@@ -2129,4 +2671,31 @@ html {
   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   display: block;
   margin: 0 auto;
+}
+
+/* Ensure file ends cleanly - close any accidental unclosed blocks */
+}
+
+/* DEBUG / FIX: Ensure tables are visible on screen (not print) */
+@media screen {
+  /* Make card containers transparent to reveal underlying tables */
+  .card, .card-modern, .card-body, .card-header {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Bring table containers to front */
+  .table-responsive, .table-modern, .print-table, table {
+    position: relative !important;
+    z-index: 9999 !important;
+    background: transparent !important;
+    opacity: 1 !important;
+  }
+
+  /* Hide common overlay/backdrop elements that may cover the table */
+  .modal-backdrop, .overlay, .panel-overlay, .backdrop {
+    display: none !important;
+    pointer-events: none !important;
+  }
 }

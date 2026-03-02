@@ -56,8 +56,8 @@
           <option value="Informatique">Informatique</option>
           <option value="EPS">EPS</option>
         </select>
-        <button type="button" class="btn btn-outline-secondary btn-modern no-print" onclick="window.print()">
-          <i class="fas fa-print me-1"></i>
+        <button type="button" class="btn btn-outline-secondary btn-modern no-print" onclick="window.print()" title="Imprimer la liste filtrée">
+          <i class="fas fa-print me-1"></i>Imprimer
         </button>
       </div>
       <div class="col-md-3">
@@ -78,19 +78,25 @@
     <span class="badge bg-primary" id="teacherCount"><%= enseignants.length %> enseignant(s)</span>
   </div>
   <div class="p-2 print-only" id="printFilters"></div>
+  <div class="print-header print-only">
+    <h4>Liste des Enseignants</h4>
+    <p style="margin: 0; font-size: 10pt; color: #666;">
+      Généré le <%= new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+    </p>
+  </div>
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-modern mb-0" id="teachersTable">
+      <table class="table table-modern mb-0 print-table" id="teachersTable">
         <thead>
           <tr>
-            <th><i class="fas fa-user me-1"></i>Nom complet</th>
-            <th><i class="fas fa-book me-1"></i>Matière</th>
-            <th><i class="fas fa-school me-1"></i>Classes</th>
-            <th><i class="fas fa-layer-group me-1"></i>Niveaux</th>
-            <th><i class="fas fa-phone me-1"></i>Téléphone</th>
-            <th><i class="fas fa-envelope me-1"></i>Email</th>
-            <th><i class="fas fa-calendar me-1"></i>Date d'embauche</th>
-            <th class="text-center"><i class="fas fa-cogs me-1"></i>Actions</th>
+            <th style="width: 20%;"><span class="no-print">👤 </span>Nom complet</th>
+            <th style="width: 15%;"><span class="no-print">📚 </span>Matière</th>
+            <th style="width: 20%;"><span class="no-print">🏫 </span>Classes</th>
+            <th style="width: 10%; display: none;"><span class="no-print">📊 </span>Niveaux</th>
+            <th style="width: 15%;"><span class="no-print">📞 </span>Téléphone</th>
+            <th style="width: 15%;"><span class="no-print">✉️ </span>Email</th>
+            <th style="width: 8%; display: none;"><span class="no-print">📅 </span>Date d'embauche</th>
+            <th style="width: 2%; text-align: center;" class="no-print"><span class="no-print">⚙️ </span>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -111,60 +117,49 @@
             <% enseignants.forEach(function(e){ %>
               <tr>
                 <td>
-                  <div class="d-flex align-items-center">
-                    <div class="avatar-circle me-3">
-                      <i class="fas fa-user"></i>
-                    </div>
-                    <div>
-                      <div class="fw-bold"><%= e.prenom %> <%= e.nom %></div>
-                      <small class="text-muted">ID: <%= e._id.toString().substring(0, 8) %>...</small>
-                    </div>
-                  </div>
+                  <div><strong><%= e.prenom %> <%= e.nom %></strong></div>
+                  <small class="text-muted no-print" style="display: inline-block;">ID: <%= e._id.toString().substring(0, 8) %>...</small>
                 </td>
                 <td>
-                  <span class="badge bg-info"><%= e.matiere %></span>
+                  <span class="badge bg-info" style="border: 1px solid #000; padding: 3px 5px;"><%= e.matiere %></span>
                 </td>
                 <td>
                   <% if (e.classes && e.classes.length > 0) { %>
                     <% e.classes.forEach(function(classe) { %>
-                      <span class="badge bg-success me-1"><%= classe %></span>
+                      <span class="badge bg-success" style="border: 1px solid #000; padding: 2px 4px; margin-right: 2px; display: inline-block;"><%= classe %></span>
                     <% }) %>
                   <% } else { %>
                     <span class="text-muted">Aucune classe</span>
                   <% } %>
                 </td>
-                <td>
+                <td style="display: none;">
                   <% if (e.classes && e.classes.length > 0) { %>
                     <% const niveaux = [...new Set(e.classes.map(c => c.split(' ')[0]))]; %>
                     <% niveaux.forEach(function(niveau) { %>
-                      <span class="badge bg-warning me-1"><%= niveau %></span>
+                      <span class="badge bg-warning" style="border: 1px solid #000; padding: 2px 4px; margin-right: 2px;"><%= niveau %></span>
                     <% }) %>
                   <% } else { %>
                     <span class="text-muted">Aucun niveau</span>
                   <% } %>
                 </td>
                 <td>
-                  <a href="tel:<%= e.telephone %>" class="text-decoration-none">
-                    <i class="fas fa-phone me-1"></i><%= e.telephone %>
-                  </a>
+                  <span class="print-phone"><%= e.telephone %></span>
                 </td>
                 <td>
                   <% if (e.email) { %>
-                    <a href="mailto:<%= e.email %>" class="text-decoration-none">
-                      <i class="fas fa-envelope me-1"></i><%= e.email %>
-                    </a>
+                    <span class="print-email" style="word-break: break-word;"><%= e.email %></span>
                   <% } else { %>
                     <span class="text-muted">Non renseigné</span>
                   <% } %>
                 </td>
-                <td>
+                <td style="display: none;">
                   <% if (e.date_embauche) { %>
-                    <%= new Date(e.date_embauche).toLocaleDateString('fr-FR') %>
+                    <span class="print-date"><%= new Date(e.date_embauche).toLocaleDateString('fr-FR') %></span>
                   <% } else { %>
                     <span class="text-muted">Non renseignée</span>
                   <% } %>
                 </td>
-                <td class="text-center">
+                <td class="text-center no-print">
                   <div class="btn-group" role="group">
                     <button class="btn btn-outline-primary btn-sm" onclick="editTeacher('<%= e._id %>')" title="Modifier">
                       <i class="fas fa-edit"></i>
@@ -199,6 +194,7 @@ document.getElementById('searchInput').addEventListener('input', function() {
   });
   
   updateTeacherCount();
+  updatePrintFilters();
 });
 
 // Fonction de filtrage par matière
@@ -242,11 +238,21 @@ function updateTeacherCount() {
 
 // Met à jour le résumé des filtres pour l'impression
 function updatePrintFilters() {
+  const searchTerm = document.getElementById('searchInput').value;
   const mat = document.getElementById('filterMatiere').value;
-  let text = 'Filtres : ';
-  if (mat) text += 'Matière=' + mat;
-  else text += 'aucun';
-  document.getElementById('printFilters').textContent = text;
+  let text = '';
+  
+  let filtersApplied = [];
+  if (searchTerm) filtersApplied.push(`Recherche: <strong>${searchTerm}</strong>`);
+  if (mat) filtersApplied.push(`Matière: <strong>${mat}</strong>`);
+  
+  if (filtersApplied.length > 0) {
+    text = 'Filtres appliqués: ' + filtersApplied.join(' | ');
+  } else {
+    text = 'Aucun filtre appliqué';
+  }
+  
+  document.getElementById('printFilters').innerHTML = text;
 }
 
 // initial print filters message

@@ -75,17 +75,28 @@
         </select>
       </div>
       <div class="col-md-1">
-        <button class="btn btn-outline-primary w-100" onclick="exportToExcel()">
+        <button class="btn btn-outline-primary w-100 no-print" onclick="exportToExcel()" title="Exporter en Excel">
           <i class="fas fa-file-excel"></i>
         </button>
       </div>
-      <div class="col-md-2">
-        <button class="btn btn-outline-success w-100" onclick="exportDailyPDF()" id="dailyPdfBtn" disabled>
-          <i class="fas fa-file-pdf me-1"></i>PDF Jour
+      <div class="col-md-1">
+        <button type="button" class="btn btn-outline-secondary w-100 no-print" onclick="window.print()" title="Imprimer la liste filtrée">
+          <i class="fas fa-print"></i>
+        </button>
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-outline-success w-100 no-print" onclick="exportDailyPDF()" id="dailyPdfBtn" disabled title="Générer PDF du jour">
+          <i class="fas fa-file-pdf"></i>
         </button>
       </div>
     </div>
   </div>
+</div>
+
+<!-- Section d'affichage des filtres à l'impression -->
+<div class="p-3 print-only" id="printFiltersInfo" style="border: 1px solid #ddd; border-radius: 4px; background-color: #f8f9fa; margin-bottom: 1rem;">
+  <h6 class="mb-2"><i class="fas fa-filter me-2"></i>Filtres appliqués</h6>
+  <p class="mb-0" id="printPaymentFiltersText">Aucun filtre appliqué</p>
 </div>
 
 <!-- Statistiques de la journée -->
@@ -139,6 +150,12 @@
 
 <!-- Tableau des paiements mensuels -->
 <div class="card card-modern">
+  <div class="card-header print-header print-only">
+    <h4>État des Paiements de Scolarité</h4>
+    <p style="margin: 0; font-size: 10pt; color: #666;">
+      Généré le <%= new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+    </p>
+  </div>
   <div class="card-body p-0">
     <div class="table-responsive">
       <table id="tablePaiements" class="table table-hover table-bordered mb-0" style="font-size: 0.85rem;">
@@ -471,6 +488,43 @@ document.getElementById('searchInput').addEventListener('input', filterTable);
 document.getElementById('classeFilter').addEventListener('change', filterTable);
 document.getElementById('statutFilter').addEventListener('change', filterTable);
 document.getElementById('dateFilter').addEventListener('change', filterByDate);
+
+// Mettre à jour les filtres affichés à l'impression
+function updatePrintPaymentFilters() {
+  const search = document.getElementById('searchInput').value;
+  const classe = document.getElementById('classeFilter').value;
+  const statut = document.getElementById('statutFilter').value;
+  const date = document.getElementById('dateFilter').value;
+  const printFiltersText = document.getElementById('printPaymentFiltersText');
+  
+  let filtersApplied = [];
+  if (search) filtersApplied.push(`Recherche: <strong>${search}</strong>`);
+  if (classe) filtersApplied.push(`Classe: <strong>${classe}</strong>`);
+  if (statut) {
+    const statutLabel = statut === 'ok' ? 'À jour' : statut === 'retard' ? 'En retard' : statut;
+    filtersApplied.push(`Statut: <strong>${statutLabel}</strong>`);
+  }
+  if (date) {
+    const dateObj = new Date(date);
+    const dateLabel = dateObj.toLocaleDateString('fr-FR');
+    filtersApplied.push(`Date: <strong>${dateLabel}</strong>`);
+  }
+  
+  if (filtersApplied.length > 0) {
+    printFiltersText.innerHTML = filtersApplied.join(' | ');
+  } else {
+    printFiltersText.innerHTML = 'Aucun filtre appliqué';
+  }
+}
+
+// Écouter les changements de filtre et mettre à jour l'affichage à l'impression
+document.getElementById('searchInput').addEventListener('input', updatePrintPaymentFilters);
+document.getElementById('classeFilter').addEventListener('change', updatePrintPaymentFilters);
+document.getElementById('statutFilter').addEventListener('change', updatePrintPaymentFilters);
+document.getElementById('dateFilter').addEventListener('change', updatePrintPaymentFilters);
+
+// Initialiser les filtres à l'impression au chargement
+updatePrintPaymentFilters();
 
 function filterTable() {
   var searchTerm = document.getElementById('searchInput').value.toLowerCase();
