@@ -1809,8 +1809,14 @@ html {
   .sidebar,
   .main-header,
   .btn,
-  .pagination {
+  .pagination,
+  .no-print {
     display: none !important;
+  }
+
+  /* elements meant only for print should be visible */
+  .print-only {
+    display: block !important;
   }
   
   .content-wrapper {

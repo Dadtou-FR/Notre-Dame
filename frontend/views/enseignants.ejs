@@ -40,7 +40,7 @@
           <input type="text" class="form-control" id="searchInput" placeholder="Rechercher un enseignant...">
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 d-flex align-items-center gap-2">
         <select class="form-select" id="filterMatiere">
           <option value="">Toutes les matières</option>
           <option value="Catéchèse">Catéchèse</option>
@@ -56,6 +56,9 @@
           <option value="Informatique">Informatique</option>
           <option value="EPS">EPS</option>
         </select>
+        <button type="button" class="btn btn-outline-secondary btn-modern no-print" onclick="window.print()">
+          <i class="fas fa-print me-1"></i>
+        </button>
       </div>
       <div class="col-md-3">
         <button class="btn btn-outline-secondary btn-modern w-100" onclick="clearFilters()">
@@ -74,6 +77,7 @@
     </h5>
     <span class="badge bg-primary" id="teacherCount"><%= enseignants.length %> enseignant(s)</span>
   </div>
+  <div class="p-2 print-only" id="printFilters"></div>
   <div class="card-body p-0">
     <div class="table-responsive">
       <table class="table table-modern mb-0" id="teachersTable">
@@ -213,6 +217,7 @@ document.getElementById('filterMatiere').addEventListener('change', function() {
   });
   
   updateTeacherCount();
+  updatePrintFilters();
 });
 
 // Fonction pour effacer les filtres
@@ -226,6 +231,7 @@ function clearFilters() {
   });
   
   updateTeacherCount();
+  updatePrintFilters();
 }
 
 // Fonction pour mettre à jour le compteur
@@ -233,6 +239,18 @@ function updateTeacherCount() {
   const visibleRows = document.querySelectorAll('#teachersTable tbody tr[style=""], #teachersTable tbody tr:not([style])');
   document.getElementById('teacherCount').textContent = visibleRows.length + ' enseignant(s)';
 }
+
+// Met à jour le résumé des filtres pour l'impression
+function updatePrintFilters() {
+  const mat = document.getElementById('filterMatiere').value;
+  let text = 'Filtres : ';
+  if (mat) text += 'Matière=' + mat;
+  else text += 'aucun';
+  document.getElementById('printFilters').textContent = text;
+}
+
+// initial print filters message
+updatePrintFilters();
 
 // Fonction pour modifier un enseignant
 function editTeacher(id) {
