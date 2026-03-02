@@ -591,7 +591,7 @@ DEFAULT_LANGUAGE=[code_langue]
 ### Questions fréquentes
 
 **Q : Comment changer le logo de l'école ?**
-R : Remplacez le fichier `assets/images/logo.png` et redémarrez l'application.
+R : Remplacez le fichier `assets/images/logo notre.png` et redémarrez l'application.
 
 **Q : Peut-on gérer plusieurs années scolaires ?**
 R : Oui, l'application supporte la gestion multi-années avec archivage automatique.
@@ -693,12 +693,6 @@ Dans les versions futures, l’application pourrait intégrer :
 7. Licence
 L’application est distribuée sous licence MIT, permettant son utilisation, sa modification et sa distribution libre, sous réserve du respect des conditions de la licence.
 
-🎤 Version courte pour présentation orale (soutenance)
-Si tu dois présenter à l’oral :
-L’application Gestion École est une solution numérique développée pour moderniser la gestion administrative des établissements scolaires.
-Elle permet de gérer les élèves, les enseignants, les classes et les paiements de manière centralisée.
-Ce projet vise à réduire les erreurs administratives, améliorer l’organisation et faciliter l’accès aux informations.
-Il a été développé en utilisant JavaScript et une base de données pour assurer la gestion et la sécurisation des données.
 Fait avec ❤️ pour l'éducation à Madagascar
 ```
 

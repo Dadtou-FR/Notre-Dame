@@ -1,9 +1,9 @@
-# TODO: Ajouter le bouton "À propos"
+# TODO - Système de rôles utilisateurs
 
-## Étapes à suivre
-- [x] Créer `backend/routes/about.controller.js` pour gérer la logique de la page À propos
-- [x] Créer `backend/routes/about.js` pour définir les routes
-- [x] Ajouter la route dans `backend/index.js`
-- [x] Ajouter le lien de navigation dans `frontend/views/partials/header.ejs`
-- [x] Créer `frontend/views/about.ejs` pour afficher la page avec logo, infos développeur et licence MIT
-- [x] Tester la page après création
+## Étapes à compléter:
+- [ ] 1. Mettre à jour le modèle User avec les rôles: admin, secretaire, caissiere, enseignant
+- [ ] 2. Ajouter un middleware de vérification de rôle dans auth.js
+- [ ] 3. Créer les vues admin (user_add.ejs, user_edit.ejs)
+- [ ] 4. Mettre à jour le tableau de bord pour afficher les options selon le rôle
+- [ ] 5. Restreindre les routes selon les rôles
+- [ ] 6. Créer un utilisateur admin par défaut

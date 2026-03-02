@@ -24,8 +24,11 @@
         <div class="mb-3">
           <label class="form-label">Rôle</label>
           <select name="role" class="form-select">
-            <option value="user" <%= user && user.role === 'user' ? 'selected' : '' %>>Utilisateur</option>
             <option value="admin" <%= user && user.role === 'admin' ? 'selected' : '' %>>Administrateur</option>
+            <option value="secretaire" <%= user && user.role === 'secretaire' ? 'selected' : '' %>>Secrétaire</option>
+            <option value="caissiere" <%= user && user.role === 'caissiere' ? 'selected' : '' %>>Caissière</option>
+            <option value="enseignant" <%= user && user.role === 'enseignant' ? 'selected' : '' %>>Enseignant</option>
+            <option value="user" <%= user && user.role === 'user' ? 'selected' : '' %>>Utilisateur (autre)</option>
           </select>
         </div>
         <div class="d-grid gap-2">

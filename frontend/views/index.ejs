@@ -88,8 +88,18 @@
             <div class="card-body">
                 <h6 class="text-muted">Raccourcis</h6>
                 <div class="d-grid gap-2 mt-3">
-                    <a href="/etudiants/add" class="btn btn-primary btn-sm">Nouvel étudiant</a>
-                    <a href="/paiements/add" class="btn btn-outline-primary btn-sm">Ajouter paiement</a>
+                    <% if (canManageEtudiants) { %>
+                        <a href="/etudiants/add" class="btn btn-primary btn-sm">Nouvel étudiant</a>
+                    <% } %>
+                    <% if (canManagePaiements) { %>
+                        <a href="/paiements/add" class="btn btn-outline-primary btn-sm">Ajouter paiement</a>
+                    <% } %>
+                    <% if (canManageUsers) { %>
+                        <a href="/admin/users" class="btn btn-outline-secondary btn-sm">Gérer utilisateurs</a>
+                    <% } %>
+                    <% if (canManageNotes || canViewNotes) { %>
+                        <a href="/notes" class="btn btn-outline-success btn-sm">Voir notes</a>
+                    <% } %>
                 </div>
             </div>
         </div>

@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth');
 const Annee = require('../models/annees');
 const Etudiant = require('../models/etudiants');
 const Note = require('../models/notes');
 const Paiement = require('../models/paiements');
+
+// toutes les routes de transitions nécessitent la permission de gérer les années
+router.use(auth.requirePermission('canManageAnnees'));
 
 // Afficher la page de gestion des transitions
 router.get('/', async (req, res) => {

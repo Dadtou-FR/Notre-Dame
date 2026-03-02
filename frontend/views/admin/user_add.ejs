@@ -1,0 +1,75 @@
+<%- include('../partials/header', { title: title || 'Ajouter un utilisateur' }) %>
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Créer un nouveau compte</h5>
+        </div>
+        <div class="card-body">
+          <% if (errorMessage) { %>
+            <div class="alert alert-danger"><%= errorMessage %></div>
+          <% } %>
+
+          <form method="POST" action="/admin/users/add">
+            <div class="mb-3">
+              <label for="username" class="form-label">Nom d'utilisateur *</label>
+              <input type="text" class="form-control" id="username" name="username" required 
+                     value="<%= formData ? formData.username : '' %>">
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Mot de passe *</label>
+              <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="role" class="form-label">Rôle *</label>
+              <select class="form-select" id="role" name="role" required>
+                <option value="">Sélectionner un rôle</option>
+                <option value="admin" <%= formData && formData.role === 'admin' ? 'selected' : '' %>>Administrateur</option>
+                <option value="secretaire" <%= formData && formData.role === 'secretaire' ? 'selected' : '' %>>Secrétaire</option>
+                <option value="caissiere" <%= formData && formData.role === 'caissiere' ? 'selected' : '' %>>Caissière</option>
+                <option value="enseignant" <%= formData && formData.role === 'enseignant' ? 'selected' : '' %>>Enseignant</option>
+              </select>
+              <div class="form-text">
+                <small>
+                  <strong>Admin:</strong> Accès complet | 
+                  <strong>Secrétaire:</strong> Étudiants, enseignants, paiements, notes | 
+                  <strong>Caissière:</strong> Paiements uniquement | 
+                  <strong>Enseignant:</strong> Notes uniquement
+                </small>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="nom" class="form-label">Nom</label>
+              <input type="text" class="form-control" id="nom" name="nom" 
+                     value="<%= formData ? formData.nom : '' %>">
+            </div>
+
+            <div class="mb-3">
+              <label for="prenom" class="form-label">Prénom</label>
+              <input type="text" class="form-control" id="prenom" name="prenom" 
+                     value="<%= formData ? formData.prenom : '' %>">
+            </div>
+
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email" name="email" 
+                     value="<%= formData ? formData.email : '' %>">
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">Créer le compte</button>
+              <a href="/admin/users" class="btn btn-secondary">Annuler</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

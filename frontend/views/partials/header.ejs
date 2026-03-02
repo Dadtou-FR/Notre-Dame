@@ -65,42 +65,55 @@
                     <span class="nav-text">Accueil</span>
                 </a>
             </li>
+            <% if (canManageEtudiants) { %>
             <li class="nav-item">
                 <a class="nav-link" href="/etudiants">
                     <i class="fas fa-user-graduate"></i>
                     <span class="nav-text">Étudiants</span>
                 </a>
             </li>
+            <% } %>
+            <% if (canManageEnseignants) { %>
             <li class="nav-item">
                 <a class="nav-link" href="/enseignants">
                     <i class="fas fa-chalkboard-teacher"></i>
                     <span class="nav-text">Enseignants</span>
                 </a>
             </li>
+            <% } %>
+            <% if (canManagePaiements) { %>
             <li class="nav-item">
                 <a class="nav-link" href="/paiements">
                     <i class="fas fa-receipt"></i>
                     <span class="nav-text">Paiements</span>
                 </a>
             </li>
+            <% } %>
+            <% if (canManageNotes || canViewNotes) { %>
             <li class="nav-item">
                 <a class="nav-link" href="/notes">
                     <i class="fas fa-clipboard-list"></i>
                     <span class="nav-text">Notes</span>
                 </a>
             </li>
+            <% } %>
+            <% if (canGenerateBulletins) { %>
             <li class="nav-item">
                 <a class="nav-link" href="/bulletin">
                     <i class="fas fa-file-alt"></i>
                     <span class="nav-text">Bulletin</span>
                 </a>
             </li>
+            <% } %>
+            <% if (canGenerateCertificats) { %>
             <li class="nav-item">
                 <a class="nav-link" href="/certificat">
                     <i class="fas fa-certificate"></i>
                     <span class="nav-text">Certificat</span>
                 </a>
             </li>
+            <% } %>
+            <% if (canManageAnnees) { %>
             <li class="nav-item">
                 <a class="nav-link" href="/annees">
                     <i class="fas fa-calendar-alt"></i>
@@ -113,6 +126,7 @@
                     <span class="nav-text">Transitions</span>
                 </a>
             </li>
+            <% } %>
             <li class="nav-item">
                 <a class="nav-link" href="/bulletins-archives">
                     <i class="fas fa-archive"></i>
@@ -125,6 +139,14 @@
                     <span class="nav-text">À propos</span>
                 </a>
             </li>
+            <% if (canManageUsers) { %>
+            <li class="nav-item mt-3 border-top pt-2">
+                <a class="nav-link" href="/admin/users">
+                    <i class="fas fa-users-cog"></i>
+                    <span class="nav-text">Utilisateurs</span>
+                </a>
+            </li>
+            <% } %>
         </ul>
     </nav>
 
@@ -196,12 +218,33 @@
                 </div>
                 <div class="header-user ms-3">
                     <% if (user && user.authenticated) { %>
-                                                        <span class="me-2">Connecté: <strong><%= user.username %></strong></span>
-                                                        <a href="/logout" class="btn btn-sm btn-deconnexion">Déconnexion</a>
-                                                    <% } else { %>
-                                                        <a href="/login" class="btn btn-sm btn-outline-primary">Connexion</a>
-                                                    <% } %>
-                            </div>
+                        <% 
+                            // Fonction pour afficher le rôle en français
+                            const roleLabels = {
+                                'admin': 'Administrateur',
+                                'secretaire': 'Secrétaire',
+                                'caissiere': 'Caissière',
+                                'enseignant': 'Enseignant'
+                            };
+                            const roleLabel = roleLabels[user.role] || user.role;
+                        %>
+                        <span class="me-2">
+                        <% 
+                            // n'afficher le nom complet que si renseigné et pas un compte admin,
+                            // secrétaire ou caissière générique.
+                            let displayName = user.username;
+                            if (user.nom && user.prenom && !['admin','enseignant','secretaire','caissiere'].includes(user.role)) {
+                                displayName = user.prenom + ' ' + user.nom;
+                            }
+                        %>
+                        <strong><%= displayName %></strong>
+                        <span class="badge bg-info text-dark"><%= roleLabel %></span>
+                    </span>
+                        <a href="/logout" class="btn btn-sm btn-deconnexion">Déconnexion</a>
+                    <% } else { %>
+                        <a href="/login" class="btn btn-sm btn-outline-primary">Connexion</a>
+                    <% } %>
+                </div>
             </div>
         </header>
         

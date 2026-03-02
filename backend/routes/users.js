@@ -2,11 +2,18 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const User = require('../models/users');
+const { ROLES } = require('../models/users');
 
-// Liste des utilisateurs
+// Liste des utilisateurs - avec contrôle d'accès
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find().select('-password').lean();
+    // Vérifier les permissions
+    if (!req.session.user || !req.session.user.permissions || !req.session.user.permissions.canManageUsers) {
+      req.flash('error', 'Vous n\'avez pas l\'autorisation de gérer les utilisateurs');
+      return res.redirect('/');
+    }
+    
+    const users = await User.find().select('-passwordHash').lean();
     res.render('admin/users', {
       title: 'Gestion des Utilisateurs',
       users
@@ -20,16 +27,29 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Formulaire d'ajout d'utilisateur
+// Formulaire d'ajout d'utilisateur - avec contrôle d'accès
 router.get('/add', (req, res) => {
+  // Vérifier les permissions
+  if (!req.session.user || !req.session.user.permissions || !req.session.user.permissions.canManageUsers) {
+    req.flash('error', 'Vous n\'avez pas l\'autorisation de créer des utilisateurs');
+    return res.redirect('/');
+  }
+  
   res.render('admin/user_add', {
-    title: 'Ajouter un Utilisateur'
+    title: 'Ajouter un Utilisateur',
+    formData: {}
   });
 });
 
-// Création d'utilisateur
+// Création d'utilisateur - avec contrôle d'accès
 router.post('/add', async (req, res) => {
   try {
+    // Vérifier les permissions
+    if (!req.session.user || !req.session.user.permissions || !req.session.user.permissions.canManageUsers) {
+      req.flash('error', 'Vous n\'avez pas l\'autorisation de créer des utilisateurs');
+      return res.redirect('/');
+    }
+
     const { username, password, role, nom, prenom, email } = req.body;
 
     // Validation
@@ -51,21 +71,26 @@ router.post('/add', async (req, res) => {
       });
     }
 
-    // Hash du mot de passe
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // Vérifier que le rôle est valide
+    const validRoles = Object.values(ROLES);
+    if (!validRoles.includes(role)) {
+      return res.status(400).render('admin/user_add', {
+        title: 'Ajouter un Utilisateur',
+        errorMessage: 'Rôle invalide',
+        formData: req.body
+      });
+    }
 
-    // Créer l'utilisateur
-    const user = new User({
-      username,
-      password: hashedPassword,
-      role: role || 'user',
+    // Créer l'utilisateur avec la méthode du modèle
+    const user = await User.createUser(username, password, role || ROLES.ENSEIGNANT);
+    
+    // Mettre à jour les champs supplémentaires
+    await User.findByIdAndUpdate(user._id, {
       nom,
       prenom,
-      email
+      email,
+      active: true
     });
-
-    await user.save();
 
     req.flash('success', 'Utilisateur créé avec succès');
     res.redirect('/admin/users');
@@ -79,10 +104,16 @@ router.post('/add', async (req, res) => {
   }
 });
 
-// Formulaire de modification d'utilisateur
+// Formulaire de modification d'utilisateur - avec contrôle d'accès
 router.get('/edit/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    // Vérifier les permissions
+    if (!req.session.user || !req.session.user.permissions || !req.session.user.permissions.canManageUsers) {
+      req.flash('error', 'Vous n\'avez pas l\'autorisation de modifier des utilisateurs');
+      return res.redirect('/');
+    }
+
+    const user = await User.findById(req.params.id).select('-passwordHash');
     if (!user) {
       return res.status(404).render('error', {
         message: 'Utilisateur non trouvé',
@@ -103,14 +134,30 @@ router.get('/edit/:id', async (req, res) => {
   }
 });
 
-// Modification d'utilisateur
+// Modification d'utilisateur - avec contrôle d'accès
 router.post('/edit/:id', async (req, res) => {
   try {
+    // Vérifier les permissions
+    if (!req.session.user || !req.session.user.permissions || !req.session.user.permissions.canManageUsers) {
+      req.flash('error', 'Vous n\'avez pas l\'autorisation de modifier des utilisateurs');
+      return res.redirect('/');
+    }
+
     const { username, role, nom, prenom, email, password } = req.body;
+
+    // Vérifier que le rôle est valide
+    const validRoles = Object.values(ROLES);
+    if (!validRoles.includes(role)) {
+      return res.status(400).render('admin/user_edit', {
+        title: 'Modifier l\'Utilisateur',
+        errorMessage: 'Rôle invalide',
+        user: req.body
+      });
+    }
 
     const updateData = {
       username,
-      role: role || 'user',
+      role,
       nom,
       prenom,
       email
@@ -119,7 +166,7 @@ router.post('/edit/:id', async (req, res) => {
     // Si un nouveau mot de passe est fourni
     if (password && password.trim()) {
       const saltRounds = 10;
-      updateData.password = await bcrypt.hash(password, saltRounds);
+      updateData.passwordHash = await bcrypt.hash(password, saltRounds);
     }
 
     await User.findByIdAndUpdate(req.params.id, updateData);
@@ -136,9 +183,60 @@ router.post('/edit/:id', async (req, res) => {
   }
 });
 
-// Suppression d'utilisateur
-router.get('/delete/:id', async (req, res) => {
+// Activer/Désactiver un utilisateur - avec contrôle d'accès
+router.post('/toggle/:id', async (req, res) => {
   try {
+    // Vérifier les permissions
+    if (!req.session.user || !req.session.user.permissions || !req.session.user.permissions.canManageUsers) {
+      req.flash('error', 'Vous n\'avez pas l\'autorisation de modifier des utilisateurs');
+      return res.redirect('/');
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      req.flash('error', 'Utilisateur non trouvé');
+      return res.redirect('/admin/users');
+    }
+
+    // Empêcher la désactivation de son propre compte
+    if (user._id.toString() === req.session.user._id) {
+      req.flash('error', 'Vous ne pouvez pas désactiver votre propre compte');
+      return res.redirect('/admin/users');
+    }
+
+    user.active = !user.active;
+    await user.save();
+
+    req.flash('success', user.active ? 'Utilisateur activé' : 'Utilisateur désactivé');
+    res.redirect('/admin/users');
+  } catch (error) {
+    console.error('Erreur lors du changement de statut:', error);
+    req.flash('error', 'Erreur lors du changement de statut');
+    res.redirect('/admin/users');
+  }
+});
+
+// Suppression d'utilisateur - avec contrôle d'accès
+router.post('/delete/:id', async (req, res) => {
+  try {
+    // Vérifier les permissions
+    if (!req.session.user || !req.session.user.permissions || !req.session.user.permissions.canManageUsers) {
+      req.flash('error', 'Vous n\'avez pas l\'autorisation de supprimer des utilisateurs');
+      return res.redirect('/');
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      req.flash('error', 'Utilisateur non trouvé');
+      return res.redirect('/admin/users');
+    }
+
+    // Empêcher la suppression de son propre compte
+    if (user._id.toString() === req.session.user._id) {
+      req.flash('error', 'Vous ne pouvez pas supprimer votre propre compte');
+      return res.redirect('/admin/users');
+    }
+
     await User.findByIdAndDelete(req.params.id);
     req.flash('success', 'Utilisateur supprimé avec succès');
     res.redirect('/admin/users');

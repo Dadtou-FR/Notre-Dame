@@ -22,9 +22,11 @@
     <h2 class="h4 mb-0">Gestion des notes</h2>
     <p class="text-muted mb-0">Suivi des performances académiques des étudiants</p>
   </div>
+  <% if (canManageNotes) { %>
   <a href="/notes/add" class="btn btn-success btn-modern">
     <i class="fas fa-plus me-2"></i>Ajouter des notes
   </a>
+  <% } %>
 </div>
 
 <!-- Filtres et recherche -->
@@ -127,6 +129,7 @@
                   </span>
                 </td>
                 <td class="text-center">
+                  <% if (canManageNotes) { %>
                   <div class="btn-group">
                     <a href="/notes/add?matricule=<%= etudiant.numero_matricule %>&session=<%= etudiant.session %>" class="btn btn-sm btn-warning" title="Modifier les notes">
                       <i class="fas fa-edit"></i>
@@ -135,6 +138,9 @@
                       <i class="fas fa-trash"></i>
                     </a>
                   </div>
+                  <% } else { %>
+                    <span class="text-muted">-</span>
+                  <% } %>
                 </td>
               </tr>
             <% }) %>

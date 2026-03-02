@@ -1,0 +1,74 @@
+<%- include('../partials/header', { title: title || 'Modifier un utilisateur' }) %>
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-header bg-warning">
+          <h5 class="mb-0">Modifier le compte</h5>
+        </div>
+        <div class="card-body">
+          <% if (errorMessage) { %>
+            <div class="alert alert-danger"><%= errorMessage %></div>
+          <% } %>
+
+          <form method="POST" action="/admin/users/edit/<%= user._id %>">
+            <div class="mb-3">
+              <label for="username" class="form-label">Nom d'utilisateur *</label>
+              <input type="text" class="form-control" id="username" name="username" required 
+                     value="<%= user.username %>">
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Nouveau mot de passe (laisser vide pour garder l'actuel)</label>
+              <input type="password" class="form-control" id="password" name="password">
+            </div>
+
+            <div class="mb-3">
+              <label for="role" class="form-label">Rôle *</label>
+              <select class="form-select" id="role" name="role" required>
+                <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Administrateur</option>
+                <option value="secretaire" <%= user.role === 'secretaire' ? 'selected' : '' %>>Secrétaire</option>
+                <option value="caissiere" <%= user.role === 'caissiere' ? 'selected' : '' %>>Caissière</option>
+                <option value="enseignant" <%= user.role === 'enseignant' ? 'selected' : '' %>>Enseignant</option>
+              </select>
+              <div class="form-text">
+                <small>
+                  <strong>Admin:</strong> Accès complet | 
+                  <strong>Secrétaire:</strong> Étudiants, enseignants, paiements, notes | 
+                  <strong>Caissière:</strong> Paiements uniquement | 
+                  <strong>Enseignant:</strong> Notes uniquement
+                </small>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="nom" class="form-label">Nom</label>
+              <input type="text" class="form-control" id="nom" name="nom" 
+                     value="<%= user.nom || '' %>">
+            </div>
+
+            <div class="mb-3">
+              <label for="prenom" class="form-label">Prénom</label>
+              <input type="text" class="form-control" id="prenom" name="prenom" 
+                     value="<%= user.prenom || '' %>">
+            </div>
+
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email" name="email" 
+                     value="<%= user.email || '' %>">
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+              <a href="/admin/users" class="btn btn-secondary">Annuler</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

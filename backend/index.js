@@ -146,11 +146,56 @@ app.use(session({
 
 app.use(flash());
 
-// Middleware global pour les messages flash
+// Middleware global pour les messages flash et les permissions
 app.use((req, res, next) => {
   res.locals.successMessage = req.flash('success');
   res.locals.errorMessage = req.flash('error');
   res.locals.user = req.session ? req.session.user || null : null;
+  
+  // Permissions par défaut (false) si pas connecté
+  res.locals.canManageUsers = false;
+  res.locals.canManageEtudiants = false;
+  res.locals.canManageEnseignants = false;
+  res.locals.canManagePaiements = false;
+  res.locals.canManageNotes = false;
+  res.locals.canViewNotes = false;
+  res.locals.canManageAnnees = false;
+  res.locals.canViewStats = false;
+  res.locals.canGenerateCertificats = false;
+  res.locals.canGenerateBulletins = false;
+  
+  // optionally log session details when debugging
+  if (process.env.DEBUG_PERMS) {
+    if (req.session && req.session.user) {
+      console.log('🔍 [MIDDLEWARE] Session user:', JSON.stringify(req.session.user));
+    }
+  }
+  
+  // Ajouter les permissions aux variables locales si l'utilisateur est connecté
+  if (req.session && req.session.user && req.session.user.permissions) {
+    if (process.env.DEBUG_PERMS) {
+      console.log('🔍 [MIDDLEWARE] Permissions from session:', JSON.stringify(req.session.user.permissions));
+    }
+    
+    res.locals.canManageUsers = req.session.user.permissions.canManageUsers || false;
+    res.locals.canManageEtudiants = req.session.user.permissions.canManageEtudiants || false;
+    res.locals.canManageEnseignants = req.session.user.permissions.canManageEnseignants || false;
+    res.locals.canManagePaiements = req.session.user.permissions.canManagePaiements || false;
+    res.locals.canManageNotes = req.session.user.permissions.canManageNotes || false;
+    res.locals.canViewNotes = req.session.user.permissions.canViewNotes || false;
+    res.locals.canManageAnnees = req.session.user.permissions.canManageAnnees || false;
+    res.locals.canViewStats = req.session.user.permissions.canViewStats || false;
+    res.locals.canGenerateCertificats = req.session.user.permissions.canGenerateCertificats || false;
+    res.locals.canGenerateBulletins = req.session.user.permissions.canGenerateBulletins || false;
+    
+    if (process.env.DEBUG_PERMS) {
+      console.log('🔍 [MIDDLEWARE] canManageEtudiants:', res.locals.canManageEtudiants);
+      console.log('🔍 [MIDDLEWARE] canManagePaiements:', res.locals.canManagePaiements);
+      console.log('🔍 [MIDDLEWARE] canManageNotes:', res.locals.canManageNotes);
+    }
+  } else {
+    if (process.env.DEBUG_PERMS) console.log('🔍 [MIDDLEWARE] Pas de permissions dans la session!');
+  }
   next();
 });
 

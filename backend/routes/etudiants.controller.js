@@ -3,6 +3,12 @@ const Annee = require('../models/annees');
 
 exports.create = async (req, res, next) => {
   try {
+    // Vérifier les permissions
+    if (!req.session.user || !req.session.user.permissions || !req.session.user.permissions.canManageEtudiants) {
+      req.flash('error', 'Vous n\'avez pas l\'autorisation de créer des étudiants');
+      return res.redirect('/');
+    }
+    
     const active = await Annee.getActive();
     if (active) {
       req.body.annee_scolaire = active.annee_label;
@@ -59,6 +65,12 @@ const EtudiantModel = require("../models/etudiants");
 
 exports.getAll = async (req, res) => {
   try {
+    // Vérifier les permissions
+    if (!req.session.user || !req.session.user.permissions || !req.session.user.permissions.canManageEtudiants) {
+      req.flash('error', 'Vous n\'avez pas l\'autorisation de voir les étudiants');
+      return res.redirect('/');
+    }
+    
     const { classe, telephone_parent, success } = req.query;
 
     // Construire le filtre
@@ -138,6 +150,12 @@ exports.add = async (req, res) => {
 };
 
 exports.showEditForm = async (req, res) => {
+  // Vérifier les permissions
+  if (!req.session.user || !req.session.user.permissions || !req.session.user.permissions.canManageEtudiants) {
+    req.flash('error', 'Vous n\'avez pas l\'autorisation de modifier des étudiants');
+    return res.redirect('/');
+  }
+  
   const etudiant = await EtudiantModel.findById(req.params.id);
   res.render("etudiant_edit", { etudiant });
 };
