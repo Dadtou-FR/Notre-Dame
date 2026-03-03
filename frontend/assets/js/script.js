@@ -1034,41 +1034,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     })();
 
-    // Init Chart.js for Recettes & Dépenses (fetch data from server if available)
-    (function initRecettesDepensesChart() {
+    // Init Chart.js for dashboard (paiements journaliers & notes)
+    (function initDashboardCharts() {
         try {
             if (typeof Chart === 'undefined') return;
-            const ctx = document.getElementById('recettesDepensesChart');
-            if (!ctx) return;
-            const labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+            const paymentsCtx = document.getElementById('paymentsChart');
+            const notesCtx = document.getElementById('notesChart');
+            const paiementsPeriodeCtx = document.getElementById('paiementsPeriodeChart');
+            const etudiantsNiveauCtx = document.getElementById('etudiantsNiveauChart');
+            if (!paymentsCtx && !notesCtx && !paiementsPeriodeCtx && !etudiantsNiveauCtx) return;
 
-            // Helper to create chart once we have data
-            function createChart(recettes, depenses) {
+            // build chart helpers
+            function buildLineChart(ctx, labels, datasets) {
                 return new Chart(ctx.getContext('2d'), {
                     type: 'line',
-                    data: {
-                        labels,
-                        datasets: [
-                            {
-                                label: 'Recettes',
-                                data: recettes,
-                                borderColor: '#3b82f6',
-                                backgroundColor: 'rgba(59,130,246,0.12)',
-                                tension: 0.3,
-                                fill: true,
-                                pointRadius: 3
-                            },
-                            {
-                                label: 'Dépenses',
-                                data: depenses,
-                                borderColor: '#ef4444',
-                                backgroundColor: 'rgba(239,68,68,0.12)',
-                                tension: 0.3,
-                                fill: true,
-                                pointRadius: 3
-                            }
-                        ]
-                    },
+                    data: { labels, datasets },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
@@ -1084,34 +1064,113 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            // Try fetching real data from API endpoint provided by server
-            fetch('/api/recettes-depenses')
+            // Fetch data from new API endpoint
+            fetch('/api/dashboard-data', { credentials: 'same-origin' })
                 .then(res => {
-                    if (!res.ok) throw new Error('Network response was not ok');
+                    console.log('[dashboard] fetch status', res.status, res.headers.get('content-type'));
+                    if (!res.ok) throw new Error(`Network response not ok (${res.status})`);
                     return res.json();
                 })
                 .then(data => {
-                    // Expecting data in shape: { labels?: [...], recettes: [...], depenses: [...] }
-                    const serverLabels = Array.isArray(data.labels) && data.labels.length === labels.length ? data.labels : labels;
-                    const recettes = Array.isArray(data.recettes) ? data.recettes : [];
-                    const depenses = Array.isArray(data.depenses) ? data.depenses : [];
-
-                    // If server didn't provide full arrays, fallback to zeros for missing entries
-                    const fillArray = (arr) => labels.map((_, i) => Number.isFinite(arr[i]) ? arr[i] : 0);
-                    const r = recettes.length ? fillArray(recettes) : fillArray([]);
-                    const d = depenses.length ? fillArray(depenses) : fillArray([]);
-
-                    createChart(r, d);
+                    console.log('[dashboard] received', data);
+                    const dayLabels = data.labels || [];
+                    if (paymentsCtx && Array.isArray(data.payments)) {
+                        buildLineChart(paymentsCtx, dayLabels, [
+                            {
+                                label: 'Montant paiements',
+                                data: data.payments,
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59,130,246,0.12)',
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 3
+                            }
+                        ]);
+                    }
+                    if (notesCtx && Array.isArray(data.notes)) {
+                        buildLineChart(notesCtx, dayLabels, [
+                            {
+                                label: 'Note moyenne',
+                                data: data.notes,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16,185,129,0.12)',
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 3
+                            }
+                        ]);
+                    }
                 })
                 .catch(err => {
-                    console.warn('Could not fetch recettes/depenses API, falling back to sample data', err);
-                    // Fallback example data (kept small & realistic)
-                    const recettes = [120000, 150000, 90000, 180000, 160000, 200000, 140000, 170000, 190000, 130000, 110000, 150000];
-                    const depenses = [80000, 90000, 60000, 120000, 110000, 130000, 90000, 100000, 95000, 85000, 70000, 90000];
-                    createChart(recettes, depenses);
+                    console.warn('Dashboard data fetch failed', err);
                 });
+
+            // Charger les données des paiements par période
+            if (paiementsPeriodeCtx) {
+                fetch('/api/paiements-par-periode', { credentials: 'same-origin' })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log('[paiements-par-periode] received', data);
+                        if (data.labels && data.datasets) {
+                            new Chart(paiementsPeriodeCtx.getContext('2d'), {
+                                type: 'line',
+                                data: data,
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { position: 'top' },
+                                        tooltip: { mode: 'index', intersect: false }
+                                    },
+                                    interaction: { mode: 'nearest', axis: 'x', intersect: false },
+                                    scales: {
+                                        y: { 
+                                            beginAtZero: true, 
+                                            ticks: { callback: v => new Intl.NumberFormat('fr-FR').format(v) + ' Ar' }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('Paiements par période fetch failed', err);
+                    });
+            }
+
+            // Charger les données des étudiants par niveau
+            if (etudiantsNiveauCtx) {
+                fetch('/api/etudiants-par-niveau', { credentials: 'same-origin' })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log('[etudiants-par-niveau] received', data);
+                        if (data.labels && data.datasets) {
+                            new Chart(etudiantsNiveauCtx.getContext('2d'), {
+                                type: 'bar',
+                                data: data,
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { position: 'top' },
+                                        tooltip: { mode: 'index', intersect: false }
+                                    },
+                                    scales: {
+                                        y: { 
+                                            beginAtZero: true,
+                                            ticks: { stepSize: 1 }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('Etudiants par niveau fetch failed', err);
+                    });
+            }
         } catch (e) {
-            console.warn('Erreur initialisation Chart.js', e);
+            console.error('dashboard chart init error', e);
         }
     })();
 

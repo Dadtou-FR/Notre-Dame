@@ -206,26 +206,221 @@ const authRoutes = require('./routes/auth.routes');
 // Monter les routes d'auth (login/logout)
 app.use('/', authRoutes);
 
+// Route API libre pour le tableau de bord (ne nécessite pas de session)
+app.get('/api/dashboard-data', async (req, res, next) => {
+  try {
+    const days = 30;
+    const today = new Date();
+    const labels = [];
+    const start = new Date(today);
+    start.setHours(0,0,0,0);
+    start.setDate(start.getDate() - (days - 1));
+
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      labels.push(d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }));
+    }
+
+    const paymentsAgg = await Paiement.aggregate([
+      { $match: { date: { $gte: start } } },
+      { $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          total: { $sum: '$montant' }
+        }
+      }
+    ]);
+    const paymentsMap = {};
+    paymentsAgg.forEach(p => { paymentsMap[p._id] = p.total; });
+
+    const notesAgg = await Note.aggregate([
+      { $match: { date_evaluation: { $gte: start } } },
+      { $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date_evaluation' } },
+          avg: { $avg: '$note' }
+        }
+      }
+    ]);
+    const notesMap = {};
+    notesAgg.forEach(n => { notesMap[n._id] = n.avg; });
+
+    const paymentsData = [];
+    const notesData = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const key = `${yyyy}-${mm}-${dd}`;
+      paymentsData.push(paymentsMap[key] || 0);
+      notesData.push(notesMap[key] || 0);
+    }
+
+    res.json({ labels, payments: paymentsData, notes: notesData });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// API: Évolution des paiements par période (mensuel par année scolaire)
+app.get('/api/paiements-par-periode', async (req, res, next) => {
+  try {
+    // Récupérer toutes les années scolaires
+    const Annee = require('./models/annees');
+    const annees = await Annee.find().sort({ date_debut: 1 }).lean();
+    
+    if (annees.length === 0) {
+      return res.json({ labels: [], datasets: [] });
+    }
+
+    const moisOrder = ['Septembre', 'Octobre', 'Novembre', 'Décembre', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août'];
+    
+    // Pour chaque année scolaire, calculer les paiements mensuels
+    const datasets = [];
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+    
+    for (let i = 0; i < annees.length; i++) {
+      const annee = annees[i];
+      const dateDebut = new Date(annee.date_debut);
+      const dateFin = new Date(annee.date_fin);
+      
+      // Agrégation des paiements par mois pour cette année scolaire
+      const paiementsParMois = await Paiement.aggregate([
+        {
+          $match: {
+            annee_scolaire: annee.annee_label
+          }
+        },
+        {
+          $group: {
+            _id: '$mois',
+            total: { $sum: '$montant' }
+          }
+        }
+      ]);
+      
+      // Créer un map des paiements par mois
+      const paiementMap = {};
+      paiementsParMois.forEach(p => {
+        paiementMap[p._id] = p.total;
+      });
+      
+      // Ordonner les données selon l'ordre des mois scolaires
+      const data = moisOrder.map(mois => paiementMap[mois] || 0);
+      
+      datasets.push({
+        label: annee.annee_label,
+        data: data,
+        borderColor: colors[i % colors.length],
+        backgroundColor: colors[i % colors.length] + '20',
+        tension: 0.3,
+        fill: true
+      });
+    }
+    
+    res.json({
+      labels: moisOrder,
+      datasets: datasets
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// API: Évolution du nombre d'étudiants par niveau chaque année scolaire
+app.get('/api/etudiants-par-niveau', async (req, res, next) => {
+  try {
+    // Récupérer toutes les années scolaires
+    const Annee = require('./models/annees');
+    const annees = await Annee.find().sort({ date_debut: 1 }).lean();
+    
+    if (annees.length === 0) {
+      // Si pas d'années définies, utiliser les données actuelles des étudiants
+      const niveaux = ['Maternelles', 'Primaires', 'Premier cycle', 'Second cycle'];
+      const counts = await Promise.all(
+        niveaux.map(niveau => 
+          Etudiant.countDocuments({ niveau: niveau })
+        )
+      );
+      
+      return res.json({
+        labels: ['Année actuelle'],
+        datasets: niveaux.map((niveau, i) => ({
+          label: niveau,
+          data: [counts[i]],
+          backgroundColor: ['#fbbf24', '#34d399', '#60a5fa', '#a78bfa'][i]
+        }))
+      });
+    }
+
+    const niveaux = ['Maternelles', 'Primaires', 'Premier cycle', 'Second cycle'];
+    const colors = ['#fbbf24', '#34d399', '#60a5fa', '#a78bfa'];
+    
+    // Pour chaque année scolaire, compter les étudiants par niveau
+    const datasets = [];
+    
+    for (let i = 0; i < niveaux.length; i++) {
+      const niveau = niveaux[i];
+      const data = [];
+      
+      for (const annee of annees) {
+        const count = await Etudiant.countDocuments({ 
+          annee_scolaire: annee.annee_label,
+          niveau: niveau
+        });
+        data.push(count);
+      }
+      
+      datasets.push({
+        label: niveau,
+        data: data,
+        backgroundColor: colors[i]
+      });
+    }
+    
+    const labels = annees.map(a => a.annee_label);
+    
+    res.json({
+      labels: labels,
+      datasets: datasets
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Protéger l'application (toutes les routes après cette ligne requièrent une session)
 app.use(auth.requireLogin);
 
 // Accueil: tableau de bord statistiques
 app.get('/', async (req, res, next) => {
   try {
-    const [nbEtudiants, nbEnseignants, nbPaiements, sommePaiements, nbTelephones, nbNotes, nbBulletins, nbCertificats] = await Promise.all([
+    const [nbEtudiants, nbEnseignants, nbPaiements, sommePaiements, nbNotes, nbBulletins, nbCertificats, telephoneStats] = await Promise.all([
       Etudiant.countDocuments({}),
       Enseignant.countDocuments({}),
       Paiement.countDocuments({}),
       Paiement.aggregate([
         { $group: { _id: null, total: { $sum: "$montant" } } }
       ]),
-      Etudiant.countDocuments({ telephone_parent: { $ne: null, $ne: '' } }),
       Note.countDocuments({}),
       Document.countDocuments({ type: 'bulletin' }),
-      Document.countDocuments({ type: 'certificat' })
+      Document.countDocuments({ type: 'certificat' }),
+      // Compter les numéros de téléphone uniques (un numéro = un parent)
+      Etudiant.aggregate([
+        {
+          $group: {
+            _id: '$telephone_parent'
+          }
+        },
+        {
+          $count: 'uniquePhones'
+        }
+      ])
     ]);
 
     const totalEncaissé = (sommePaiements && sommePaiements[0] ? sommePaiements[0].total : 0) || 0;
+    const nbTelephones = telephoneStats && telephoneStats[0] ? telephoneStats[0].uniquePhones : 0;
 
     res.render('index', {
       title: 'Tableau de bord',
@@ -244,6 +439,8 @@ app.get('/', async (req, res, next) => {
     next(err);
   }
 });
+
+
 
 // Page de gestion des années (UI simple)
 app.get('/annees', async (req, res, next) => {
@@ -912,9 +1109,12 @@ app.use((err, req, res, next) => {
 connectDB()
   .then(() => {
     // Écouter via httpServer parce que Socket.IO est attaché à httpServer
-    httpServer.listen(PORT, () => {
+    // Bind explicitly to 0.0.0.0 to ensure IPv4 clients (localhost/127.0.0.1)
+    httpServer.listen(PORT, '0.0.0.0', () => {
       console.log(`Serveur démarré sur le port ${PORT}`);
       console.log(`Accès: http://localhost:${PORT}`);
+      const addr = httpServer.address();
+      console.log('Adresse serveur:', addr);
     });
 
     // Gérer proprement les erreurs d'écoute (par ex. EADDRINUSE)

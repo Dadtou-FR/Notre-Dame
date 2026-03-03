@@ -51,12 +51,12 @@ const ROLE_PERMISSIONS = {
     canViewNotes: false
   },
   [ROLES.ENSEIGNANT]: {
-    // enseignant : seulement consultation des notes/classe
+    // enseignant : consultation et gestion des notes/classe
     canManageUsers: false,
     canManageEtudiants: false,
     canManageEnseignants: false,
     canManagePaiements: false,
-    canManageNotes: false,
+    canManageNotes: true,
     canManageAnnees: false,
     canViewStats: false,
     canGenerateCertificats: false,

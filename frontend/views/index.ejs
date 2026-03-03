@@ -51,11 +51,40 @@
 <!-- Main dashboard grid -->
 <div class="row">
     <div class="col-lg-8">
+            <!-- Courbes de statistiques personnalisées -->
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">Recettes & Dépenses</h5>
+                <h5 class="card-title">Variation des paiements (30 derniers jours)</h5>
                 <div style="height:260px;">
-                    <canvas id="recettesDepensesChart" style="width:100%;height:100%;"></canvas>
+                    <canvas id="paymentsChart" style="width:100%;height:100%;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Évolution moyenne des notes</h5>
+                <div style="height:260px;">
+                    <canvas id="notesChart" style="width:100%;height:100%;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nouveaux graphiques -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Évolution des paiements par période (mensuel)</h5>
+                <div style="height:300px;">
+                    <canvas id="paiementsPeriodeChart" style="width:100%;height:100%;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Évolution du nombre d'étudiants par niveau</h5>
+                <div style="height:300px;">
+                    <canvas id="etudiantsNiveauChart" style="width:100%;height:100%;"></canvas>
                 </div>
             </div>
         </div>
